@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Joker's Gambit v5</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -13,6 +15,9 @@ body {
   font-family: 'Georgia', serif;
   min-height: 100vh;
   overflow-x: hidden;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
 }
 
 #game-container {
@@ -275,6 +280,82 @@ body {
 #btn-skip-joker { background: none; border: none; color: #6b7280; font-size: 0.75rem; cursor: pointer; margin-top: 8px; font-family: Georgia, serif; padding: 4px 8px; }
 #btn-skip-joker:hover { color: #9ca3af; }
 
+/* ── User Guide Overlay ── */
+#overlay-guide .modal {
+  max-width: 760px;
+  width: 95%;
+  text-align: left;
+  overflow-y: auto;
+  max-height: 90vh;
+  padding: 24px 28px;
+}
+.guide-subtitle { text-align: center; color: #a78bfa; font-size: 0.85rem; margin-bottom: 20px; letter-spacing: 1px; }
+.guide-h2 { font-size: 1.1rem; color: #ffd700; border-bottom: 1px solid rgba(255,215,0,0.3); padding-bottom: 6px; margin: 22px 0 10px; }
+.guide-h3 { font-size: 0.93rem; color: #c084fc; margin: 14px 0 7px; }
+.guide-p { color: #d0c4f0; line-height: 1.7; font-size: 0.85rem; margin-bottom: 9px; }
+.guide-card-section {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,215,0,0.2);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+.guide-formula-box {
+  background: rgba(10,5,25,0.9);
+  border: 1px solid rgba(147,197,253,0.4);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 10px 0;
+  font-size: 0.83rem;
+  color: #93c5fd;
+  line-height: 1.8;
+  font-family: Georgia, serif;
+}
+.guide-formula-box strong { color: #ffd700; }
+.guide-result { color: #7fff7f; font-weight: bold; }
+.guide-table { width: 100%; border-collapse: collapse; font-size: 0.77rem; margin: 8px 0; }
+.guide-table th { background: rgba(255,215,0,0.12); color: #ffd700; text-align: left; padding: 6px 8px; font-size: 0.72rem; letter-spacing: 0.5px; }
+.guide-table td { padding: 5px 8px; color: #d0c4f0; border-bottom: 1px solid rgba(255,255,255,0.06); vertical-align: top; }
+.guide-table tr:nth-child(even) td { background: rgba(255,255,255,0.03); }
+.guide-tag { display: inline-block; font-size: 0.6rem; font-weight: bold; padding: 1px 6px; border-radius: 4px; margin-left: 3px; vertical-align: middle; }
+.guide-tag-common    { background: rgba(96,165,250,0.2); color: #60a5fa; border: 1px solid #60a5fa; }
+.guide-tag-uncommon  { background: rgba(251,191,36,0.2); color: #fbbf24; border: 1px solid #fbbf24; }
+.guide-tag-rare      { background: rgba(248,113,113,0.2); color: #f87171; border: 1px solid #f87171; }
+.guide-tag-legendary { background: rgba(168,85,247,0.2); color: #a855f7; border: 1px solid #a855f7; }
+.guide-tag-multmult  { background: rgba(249,115,22,0.15); color: #fb923c; border: 1px solid #f97316; }
+.guide-tip-box {
+  background: rgba(255,215,0,0.07);
+  border: 1px solid rgba(255,215,0,0.3);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 10px 0;
+  font-size: 0.8rem;
+  color: #ffd700;
+  line-height: 1.6;
+}
+.guide-tip-box strong { color: #fff; }
+.guide-mult-type-box { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin: 9px 0; }
+.guide-mult-box { background: rgba(0,0,0,0.3); border-radius: 8px; padding: 9px 12px; font-size: 0.77rem; }
+.guide-mult-box .guide-label { font-weight: bold; margin-bottom: 4px; }
+.guide-mult-box p { margin-bottom: 0; font-size: 0.75rem; color: #d0c4f0; }
+.guide-strategy-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 9px 0; }
+.guide-strategy-card { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 11px 13px; }
+.guide-strategy-card .guide-strat-name { font-weight: bold; color: #e9a0ff; font-size: 0.82rem; margin-bottom: 5px; }
+.guide-strategy-card p { font-size: 0.75rem; color: #c0a8e0; }
+.guide-toc { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+.guide-toc-btn {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,215,0,0.25);
+  border-radius: 6px;
+  color: #ffd700;
+  font-size: 0.72rem;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-family: Georgia, serif;
+  transition: background 0.15s;
+}
+.guide-toc-btn:hover { background: rgba(255,215,0,0.15); }
+
 /* Tip modal */
 #overlay-tip .modal { max-width: 440px; text-align: left; }
 #overlay-tip h2 { font-size: 1.3rem; }
@@ -291,11 +372,77 @@ body {
 #go-tip { background:rgba(255,215,0,0.08); border:1px solid rgba(255,215,0,0.3); border-radius:8px; padding:10px 14px; font-size:0.83rem; color:#ffd700; margin-bottom:16px; font-style:italic; }
 
 @media (max-width: 640px) {
-  .card { width: 58px; height: 86px; }
-  .card-center { font-size: 1.1rem; }
-  #header h1 { font-size: 1rem; }
-  .stat-value { font-size: 1rem; }
+  /* Cards */
+  .card { width: 52px; height: 78px; padding: 3px 4px; }
+  .card-corner { font-size: 0.62rem; }
+  .card-center { font-size: 0.95rem; }
+  #hand-display { gap: 5px; min-height: 100px; }
+
+  /* Header */
+  #header { padding: 8px 10px; gap: 6px; }
+  #header h1 { font-size: 0.95rem; letter-spacing: 1px; }
+  .stat-label { font-size: 0.55rem; }
+  .stat-value { font-size: 0.88rem; }
+  #high-score-display { font-size: 0.68rem; }
+
+  /* Game container */
+  #game-container { padding: 8px; gap: 8px; }
+
+  /* Joker/consumable sections */
+  #joker-section { padding: 7px 10px; }
+  #consumable-section { padding: 6px 10px; }
+  .joker-card { font-size: 0.68rem; padding: 5px 8px; max-width: 160px; }
+  .consumable-card { font-size: 0.66rem; padding: 5px 8px; max-width: 140px; }
+
+  /* Controls */
+  #controls { gap: 6px; }
+  .btn { padding: 9px 14px; font-size: 0.82rem; }
+  .btn-play { padding: 10px 18px; font-size: 0.9rem; }
+  .btn-discard { padding: 9px 14px; }
+  .btn-gambit { padding: 9px 14px; font-size: 0.8rem; }
+  .counter-badge { font-size: 0.72rem; padding: 1px 5px; }
+
+  /* Projected score */
+  #projected-score-panel { padding: 6px 10px; flex-wrap: wrap; gap: 4px; }
+  #projected-hand-name, #projected-formula, #projected-total { font-size: 0.75rem; }
+
+  /* Overlays / modals */
+  .modal { padding: 18px 16px; border-radius: 14px; }
+  .modal h2 { font-size: 1.4rem; }
+
+  /* Deck select */
+  #deck-choices { gap: 8px; }
+  .deck-choice { width: calc(50% - 4px); min-width: 130px; padding: 10px 8px; }
+  .deck-choice-icon { font-size: 1.5rem; }
+  .deck-choice-name { font-size: 0.78rem; }
+  .deck-choice-desc { font-size: 0.6rem; }
+
+  /* Shop */
   .shop-lanes { grid-template-columns: 1fr 1fr; }
+  #overlay-shop .modal { padding: 14px 12px; }
+
+  /* Joker choices */
+  .joker-choice { width: calc(50% - 6px); min-width: 120px; padding: 10px; }
+  .joker-choice-name { font-size: 0.78rem; }
+  .joker-choice-desc { font-size: 0.62rem; }
+
+  /* Score breakdown */
+  #score-breakdown { font-size: 0.74rem; padding: 8px 10px; }
+
+  /* Rules tabs */
+  #rules-tabs { gap: 3px; }
+  .rules-tab { font-size: 0.68rem; padding: 5px 8px; }
+  .rules-table { font-size: 0.7rem; }
+
+  /* Guide overlay */
+  #overlay-guide .modal { padding: 16px 12px; }
+  .guide-card-section { padding: 12px 14px; }
+  .guide-mult-type-box { grid-template-columns: 1fr; }
+  .guide-strategy-grid { grid-template-columns: 1fr; }
+  .guide-table { font-size: 0.7rem; }
+  .guide-h2 { font-size: 1rem; }
+  .guide-h3 { font-size: 0.85rem; }
+  .guide-p { font-size: 0.78rem; }
 }
 </style>
 </head>
@@ -359,6 +506,7 @@ body {
     <button class="btn btn-discard" id="btn-discard">↩ Discard <span class="counter-badge" id="discard-count">3</span></button>
     <button class="btn btn-gambit" id="btn-gambit" onclick="game.declareGambit()">🎲 The Gambit</button>
     <button class="btn btn-info" id="btn-rules">📖 Reference</button>
+    <button class="btn btn-info" id="btn-guide">📘 Guide</button>
     <button class="btn btn-info" id="btn-history">📜 History</button>
   </div>
 </div>
@@ -379,6 +527,7 @@ body {
     <div id="hall-of-fame" style="margin-top:12px;"></div>
     <div style="display:flex;gap:10px;justify-content:center;margin-top:10px;">
       <button class="btn btn-info" id="btn-daily" style="display:none;">⭐ Daily Gambit</button>
+      <button class="btn btn-info" onclick="document.getElementById('overlay-guide').classList.remove('hidden')">📘 Player's Guide</button>
     </div>
     <p style="font-size:0.7rem;color:#555;margin-top:8px;">Your deck choice is locked for the entire run.</p>
   </div>
@@ -559,6 +708,222 @@ body {
     <h2 style="text-align:center;">📜 Run History</h2>
     <div id="history-content" style="margin:14px 0;"></div>
     <button class="btn btn-info" style="width:100%;margin-top:8px;" onclick="document.getElementById('overlay-history').classList.add('hidden')">Close</button>
+  </div>
+</div>
+
+<!-- User Guide -->
+<div class="overlay hidden" id="overlay-guide">
+  <div class="modal">
+    <h2 style="text-align:center;margin-bottom:4px;">📘 Player's Guide</h2>
+    <p class="guide-subtitle">Joker's Gambit v5 — Complete Reference</p>
+    <div class="guide-toc">
+      <button class="guide-toc-btn" onclick="document.getElementById('guide-s0').scrollIntoView({behavior:'smooth'})">Overview</button>
+      <button class="guide-toc-btn" onclick="document.getElementById('guide-s1').scrollIntoView({behavior:'smooth'})">1 · Scoring</button>
+      <button class="guide-toc-btn" onclick="document.getElementById('guide-s2').scrollIntoView({behavior:'smooth'})">2 · Joker Types</button>
+      <button class="guide-toc-btn" onclick="document.getElementById('guide-s3').scrollIntoView({behavior:'smooth'})">3 · Decks</button>
+      <button class="guide-toc-btn" onclick="document.getElementById('guide-s4').scrollIntoView({behavior:'smooth'})">4 · Joker List</button>
+      <button class="guide-toc-btn" onclick="document.getElementById('guide-s5').scrollIntoView({behavior:'smooth'})">5 · Consumables</button>
+      <button class="guide-toc-btn" onclick="document.getElementById('guide-s6').scrollIntoView({behavior:'smooth'})">6 · Enhancements</button>
+      <button class="guide-toc-btn" onclick="document.getElementById('guide-s7').scrollIntoView({behavior:'smooth'})">7 · Modifiers</button>
+      <button class="guide-toc-btn" onclick="document.getElementById('guide-s8').scrollIntoView({behavior:'smooth'})">8 · The Gambit</button>
+      <button class="guide-toc-btn" onclick="document.getElementById('guide-s9').scrollIntoView({behavior:'smooth'})">9 · Strategies</button>
+    </div>
+
+    <!-- Overview -->
+    <div class="guide-card-section" id="guide-s0">
+      <h3 class="guide-h2">Overview</h3>
+      <p class="guide-p">Joker's Gambit is a poker-based deckbuilder. Each run lasts 10 rounds. In every round you play poker hands from your deck to accumulate enough points to hit the target score before running out of hands. Win a round and you earn gold and a new Joker; fail and the run ends.</p>
+      <p class="guide-p">Rounds 3, 6, and 9 feature a Shop where you can spend your gold on Jokers, Consumables, and Run Modifiers. Your deck is locked for the entire run — choose it carefully at the start.</p>
+    </div>
+
+    <!-- Scoring -->
+    <div class="guide-card-section" id="guide-s1">
+      <h3 class="guide-h2">1 · How Scoring Works</h3>
+      <p class="guide-p">Every hand you play produces a score using this formula:</p>
+      <div class="guide-formula-box">
+        <strong>Score = (Base Chips + Card Values + Bonus Chips) × (Base Mult + Mult Bonus)</strong><br><br>
+        <strong>Base Chips &amp; Base Mult</strong> come from the poker hand type:<br>
+        Royal Flush: 120 × 8 &nbsp;|&nbsp; Straight Flush: 100 × 8 &nbsp;|&nbsp; Four of a Kind: 60 × 7<br>
+        Full House: 40 × 4 &nbsp;|&nbsp; Flush: 35 × 4 &nbsp;|&nbsp; Straight: 30 × 4 &nbsp;|&nbsp; Three of a Kind: 30 × 3<br>
+        Two Pair: 20 × 2 &nbsp;|&nbsp; Pair: 10 × 2 &nbsp;|&nbsp; High Card: 5 × 1<br><br>
+        <strong>Card Values</strong> only count from <em>scoring cards</em> (the cards forming the hand pattern).<br>
+        Number cards = face value &nbsp;|&nbsp; J/Q/K = 10 &nbsp;|&nbsp; Ace = 11 (20 in Commoner's Deck)<br><br>
+        <strong>Worked Example — Full House (A♠ A♥ K♣ K♦ Q♠) + Zany Joker:</strong><br>
+        Base: 40 chips × 4 mult &nbsp;|&nbsp; Card values: 11+11+10+10+10 = 52 &nbsp;|&nbsp; Zany Joker: +12 mult<br>
+        <span class="guide-result">Score = (40 + 52) × (4 + 12) = 92 × 16 = 1,472 pts</span>
+      </div>
+      <p class="guide-p">The score bar shows progress toward the round target. Surplus points carry over at 5% to the next round. Each hand you play draws back up to your hand size from the deck automatically.</p>
+    </div>
+
+    <!-- Joker Types -->
+    <div class="guide-card-section" id="guide-s2">
+      <h3 class="guide-h2">2 · How Joker Effects Differ</h3>
+      <p class="guide-p">Jokers fire after every hand and fall into four distinct effect types. Understanding the difference is crucial for building a strong run.</p>
+      <div class="guide-mult-type-box">
+        <div class="guide-mult-box" style="border:1px solid #38bdf8;">
+          <div class="guide-label" style="color:#7dd3fc;">➕ Adds Chips</div>
+          <p>Increases the left side of the formula. Good early on but scales poorly — large mult values dilute chip gains.<br><em>Examples: Midas Touch, Royal Court, Banner.</em></p>
+        </div>
+        <div class="guide-mult-box" style="border:1px solid #a3e635;">
+          <div class="guide-label" style="color:#a3e635;">➕ Base Mult (additive)</div>
+          <p>Added to Base Mult before the final multiplication. Very powerful at moderate mult levels.<br><em>Examples: Road Runner, Zany Joker, Even Steven.</em></p>
+        </div>
+        <div class="guide-mult-box" style="border:1px solid #4ade80;">
+          <div class="guide-label" style="color:#86efac;">➕ Additive Mult Bonus</div>
+          <p>Adds directly to the mult total. Some jokers add both chips and mult. They resolve before multiplicative jokers.<br><em>Examples: Scholar, Scary Face, Fibonacci.</em></p>
+        </div>
+        <div class="guide-mult-box" style="border:1px solid #f97316;">
+          <div class="guide-label" style="color:#fb923c;">✖ Multiplicative Mult</div>
+          <p>Multiply the <em>entire current mult</em> — not just add to it. Fire after all additive jokers. Rarest and most powerful.<br><em>Examples: Baron, Loyalty Card, Bloodstone, The Duo.</em></p>
+        </div>
+      </div>
+      <div class="guide-tip-box">💡 <strong>Key insight:</strong> A joker that adds +10 mult when your total mult is 8 is a 225% score increase. The same joker when your mult is 50 is only a 25% boost. Always stack additive mult first, then seek multiplicative jokers.</div>
+    </div>
+
+    <!-- Decks -->
+    <div class="guide-card-section" id="guide-s3">
+      <h3 class="guide-h2">3 · Decks</h3>
+      <table class="guide-table">
+        <tr><th>Deck</th><th>Cards</th><th>Special Rule</th><th>Best Joker Pairs</th></tr>
+        <tr><td>🂡 Standard</td><td>52 (full)</td><td>Balanced. Ace = 11 chips.</td><td>Abstract Joker, Loyalty Card, Midas Touch</td></tr>
+        <tr><td>🔢 Commoner's</td><td>40 (2–10 + A, no faces)</td><td>Ace = 20 chips. +2 mult each hand. No face-card jokers offered.</td><td>Odd Todd, Fibonacci, Scholar, The Alchemist</td></tr>
+        <tr><td>🤴 King's Court</td><td>60 (+2 Kings/suit)</td><td>Face-heavy. Great for face-card synergies.</td><td>Baron, Royal Court, Scary Face</td></tr>
+        <tr><td>✂️ Short Deck</td><td>36 (6–A)</td><td>Denser high-value cards. Targets scale 5% faster per round.</td><td>Half Joker, The Duo, Erosion</td></tr>
+        <tr><td>🪞 Mirrored</td><td>78 (double ♥ and ♦)</td><td>Red-suit heavy. Easier flushes in hearts/diamonds.</td><td>Suited Up, Bloodstone, Greedy Joker</td></tr>
+        <tr><td>👻 Ghost</td><td>52 (8 ghost cards)</td><td>Ghost cards are wilds for straights/flushes but score 0 chips.</td><td>Road Runner, Suited Up, Droll Joker</td></tr>
+        <tr><td>⚡ Speed</td><td>52 (full)</td><td>+1 hand per round; targets scale 10% faster. Unlock: reach Round 3.</td><td>Abstract Joker, Loyalty Card, Erosion</td></tr>
+      </table>
+    </div>
+
+    <!-- Full Joker List -->
+    <div class="guide-card-section" id="guide-s4">
+      <h3 class="guide-h2">4 · Full Joker List</h3>
+      <p class="guide-p">Hold up to 3 Jokers (4 after buying the slot upgrade). Sell price: 1g (Common/Uncommon), 2g (Rare/Legendary).</p>
+      <table class="guide-table">
+        <tr><th>Name</th><th>Tier</th><th>Effect</th></tr>
+        <tr><td>Road Runner</td><td><span class="guide-tag guide-tag-common">Common</span></td><td>+80 chips and +8 mult on Straight or Straight Flush</td></tr>
+        <tr><td>Suited Up</td><td><span class="guide-tag guide-tag-common">Common</span></td><td>+50% to base mult for Flush hands</td></tr>
+        <tr><td>Royal Court</td><td><span class="guide-tag guide-tag-common">Common</span></td><td>+25 chips per J/Q/K/A played</td></tr>
+        <tr><td>Midas Touch</td><td><span class="guide-tag guide-tag-common">Common</span></td><td>+8 chips per card played (always active)</td></tr>
+        <tr><td>Odd Todd</td><td><span class="guide-tag guide-tag-common">Common</span></td><td>Played A/3/5/7/9 each give +10 chips</td></tr>
+        <tr><td>Even Steven</td><td><span class="guide-tag guide-tag-common">Common</span></td><td>Played 2/4/6/8/10 each give +3 mult</td></tr>
+        <tr><td>Scholar</td><td><span class="guide-tag guide-tag-common">Common</span></td><td>Played Aces give +20 chips and +4 mult each</td></tr>
+        <tr><td>Zany Joker</td><td><span class="guide-tag guide-tag-common">Common</span></td><td>+12 mult on Three of a Kind or Full House</td></tr>
+        <tr><td>Crazy Joker</td><td><span class="guide-tag guide-tag-common">Common</span></td><td>+12 mult on Straight (any)</td></tr>
+        <tr><td>Droll Joker</td><td><span class="guide-tag guide-tag-common">Common</span></td><td>+10 mult on Flush (any)</td></tr>
+        <tr><td>Abstract Joker</td><td><span class="guide-tag guide-tag-common">Common</span></td><td>+3 mult per active Joker slot filled</td></tr>
+        <tr><td>Delayed Gratification</td><td><span class="guide-tag guide-tag-common">Common</span></td><td>If no discards used this round, gain +1 discard next round</td></tr>
+        <tr><td>The Accountant</td><td><span class="guide-tag guide-tag-common">Common</span></td><td>Earn +1 extra gold each time you clear a round</td></tr>
+        <tr><td>Quads Champion</td><td><span class="guide-tag guide-tag-uncommon">Uncommon</span></td><td>+10 mult on Four of a Kind</td></tr>
+        <tr><td>Half Joker</td><td><span class="guide-tag guide-tag-uncommon">Uncommon</span></td><td>+10 mult if hand uses 3 or fewer cards</td></tr>
+        <tr><td>Greedy Joker</td><td><span class="guide-tag guide-tag-uncommon">Uncommon</span></td><td>Played ♦ cards each give +4 mult</td></tr>
+        <tr><td>Wrathful Joker</td><td><span class="guide-tag guide-tag-uncommon">Uncommon</span></td><td>Played ♠ cards each give +4 mult</td></tr>
+        <tr><td>Scary Face</td><td><span class="guide-tag guide-tag-uncommon">Uncommon</span></td><td>Played face cards give +30 chips and +1 mult each</td></tr>
+        <tr><td>Mystic Summit</td><td><span class="guide-tag guide-tag-uncommon">Uncommon</span></td><td>+5 mult when 0 discards remaining</td></tr>
+        <tr><td>Supernova</td><td><span class="guide-tag guide-tag-uncommon">Uncommon</span></td><td>+2 mult per time this hand type was played this run (max +20)</td></tr>
+        <tr><td>Banner</td><td><span class="guide-tag guide-tag-uncommon">Uncommon</span></td><td>+50 chips for each discard remaining</td></tr>
+        <tr><td>Raised Fist</td><td><span class="guide-tag guide-tag-uncommon">Uncommon</span></td><td>+3 mult per card held beyond the 5 played (max +9)</td></tr>
+        <tr><td>The Opportunist</td><td><span class="guide-tag guide-tag-uncommon">Uncommon</span></td><td>+15 mult if you beat the round target on your first hand</td></tr>
+        <tr><td>The Contrarian</td><td><span class="guide-tag guide-tag-uncommon">Uncommon</span></td><td>+10 mult if played hand has base chips ≤ 20</td></tr>
+        <tr><td>The Alchemist</td><td><span class="guide-tag guide-tag-uncommon">Uncommon</span></td><td>Every 30 bonus chips scored also grant +1 mult</td></tr>
+        <tr><td>Trinity</td><td><span class="guide-tag guide-tag-rare">Rare</span></td><td>3× base mult bonus on Three of a Kind or Full House</td></tr>
+        <tr><td>Fibonacci</td><td><span class="guide-tag guide-tag-rare">Rare</span></td><td>Played A/2/3/5/8 each give +8 mult</td></tr>
+        <tr><td>Rough Gem</td><td><span class="guide-tag guide-tag-rare">Rare</span></td><td>Each played ♦ permanently adds +1 mult to this joker (grows over run)</td></tr>
+        <tr><td>Erosion</td><td><span class="guide-tag guide-tag-rare">Rare</span></td><td>+4 mult for each hand already played this round</td></tr>
+        <tr><td>Loyalty Card</td><td><span class="guide-tag guide-tag-rare">Rare</span></td><td><span class="guide-tag guide-tag-multmult">×mult</span> Every 4th hand played grants ×4 mult for that hand</td></tr>
+        <tr><td>Baron</td><td><span class="guide-tag guide-tag-rare">Rare</span></td><td><span class="guide-tag guide-tag-multmult">×mult</span> Each King held in hand (not played) gives ×1.5 mult (max 2)</td></tr>
+        <tr><td>Wee Joker</td><td><span class="guide-tag guide-tag-rare">Rare</span></td><td>Playing Pair, Two Pair, or Full House permanently adds +3 chips &amp; +1 mult</td></tr>
+        <tr><td>Bloodstone</td><td><span class="guide-tag guide-tag-rare">Rare</span></td><td><span class="guide-tag guide-tag-multmult">×mult</span> Played ♥ each have 50% chance to give ×1.5 mult</td></tr>
+        <tr><td>The Duo</td><td><span class="guide-tag guide-tag-rare">Rare</span></td><td><span class="guide-tag guide-tag-multmult">×mult</span> ×2 mult if hand is exactly a Pair</td></tr>
+        <tr><td>The Forger</td><td><span class="guide-tag guide-tag-rare">Rare</span></td><td>Copies the effect of the next joker in your list once per round</td></tr>
+        <tr><td>Compound Interest</td><td><span class="guide-tag guide-tag-rare">Rare</span></td><td>Accumulates chips from every hand this round; adds them all at end</td></tr>
+        <tr><td>The Librarian</td><td><span class="guide-tag guide-tag-rare">Rare</span></td><td>+5 mult per unique hand type played this round</td></tr>
+        <tr><td>Glass Cannon</td><td><span class="guide-tag guide-tag-rare">Rare</span></td><td><span class="guide-tag guide-tag-multmult">×mult</span> ×3 mult — but hand size permanently reduced to 3. (Reward only.)</td></tr>
+        <tr><td>Oops! All 6s</td><td><span class="guide-tag guide-tag-legendary">Legendary</span></td><td><span class="guide-tag guide-tag-multmult">×mult</span> Doubles ALL mult for one hand, then consumed. (After first run win.)</td></tr>
+      </table>
+    </div>
+
+    <!-- Consumables -->
+    <div class="guide-card-section" id="guide-s5">
+      <h3 class="guide-h2">5 · Consumables</h3>
+      <p class="guide-p">One-time-use items held in a 2-slot inventory. Click to use during a round. Some require selecting target cards first via a dedicated panel. Cannot be used after a round ends.</p>
+      <table class="guide-table">
+        <tr><th>Name</th><th>Cost</th><th>Effect</th></tr>
+        <tr><td>The Fool</td><td>3g</td><td>Add 1 extra discard this round</td></tr>
+        <tr><td>The Hermit</td><td>4g</td><td>Double current gold (max +6g)</td></tr>
+        <tr><td>The Tower</td><td>3g</td><td>Shuffle hand and redraw from deck</td></tr>
+        <tr><td>The Star</td><td>4g</td><td>Change up to 3 cards to ♦ permanently</td></tr>
+        <tr><td>The Moon</td><td>4g</td><td>Change up to 3 cards to ♣ permanently</td></tr>
+        <tr><td>The Sun</td><td>4g</td><td>Change up to 3 cards to ♥ permanently</td></tr>
+        <tr><td>The World</td><td>5g</td><td>Next hand scores as a Straight Flush regardless of actual cards</td></tr>
+        <tr><td>The Hanged Man</td><td>3g</td><td>Permanently remove up to 2 cards from your deck</td></tr>
+        <tr><td>Judgement</td><td>5g</td><td>Add a random Joker to active slots (triggers replace-prompt if full)</td></tr>
+      </table>
+    </div>
+
+    <!-- Enhancements -->
+    <div class="guide-card-section" id="guide-s6">
+      <h3 class="guide-h2">6 · Card Enhancements</h3>
+      <p class="guide-p">Applied to individual cards via the Shop's Enhancement lane. Persist for the entire run.</p>
+      <table class="guide-table">
+        <tr><th>Enhancement</th><th>Effect</th></tr>
+        <tr><td>✨ Gilded</td><td>+10 bonus chips each time this card is played (gold border)</td></tr>
+        <tr><td>🔷 Foil</td><td>+4 mult the first time a Foil card is played each round (blue shimmer)</td></tr>
+      </table>
+    </div>
+
+    <!-- Run Modifiers -->
+    <div class="guide-card-section" id="guide-s7">
+      <h3 class="guide-h2">7 · Run Modifiers</h3>
+      <p class="guide-p">Permanent rule changes purchased in the Shop. Only one is offered per shop visit.</p>
+      <table class="guide-table">
+        <tr><th>Modifier</th><th>Cost</th><th>Effect</th></tr>
+        <tr><td>Extra Round</td><td>3g</td><td>+1 hand to every remaining round</td></tr>
+        <tr><td>Safety Net</td><td>4g</td><td>Survive one game over — that round is skipped</td></tr>
+        <tr><td>Sharp Eye</td><td>3g</td><td>Projected score panel also highlights the best possible hand</td></tr>
+        <tr><td>Deck Refresh</td><td>3g</td><td>Deck fully resets at the start of every remaining round</td></tr>
+        <tr><td>Lucky Streak</td><td>4g</td><td>20% chance each hand gets ×1.5 mult (lasts 3 rounds)</td></tr>
+        <tr><td>Gold Fever</td><td>3g</td><td>+1 gold per round clear for the rest of the run</td></tr>
+        <tr><td>+1 Joker Slot</td><td>10g</td><td>Raises max jokers from 3 to 4 permanently (Round 6 &amp; 9 shops)</td></tr>
+      </table>
+    </div>
+
+    <!-- The Gambit -->
+    <div class="guide-card-section" id="guide-s8">
+      <h3 class="guide-h2">8 · The Gambit</h3>
+      <p class="guide-p">Once per run you can declare <strong>The Gambit</strong> before playing a hand. You must score 1.5× the round target in a single hand. Success instantly clears the round. Failure costs you your weakest joker — but the round continues normally.</p>
+      <div class="guide-tip-box">💡 Best used on rounds where you have a near-guaranteed monster hand (e.g. Royal Flush setup with active mult jokers) and want to save hands for later rounds.</div>
+    </div>
+
+    <!-- Strategies -->
+    <div class="guide-card-section" id="guide-s9">
+      <h3 class="guide-h2">9 · Starter Strategies</h3>
+      <div class="guide-strategy-grid">
+        <div class="guide-strategy-card">
+          <div class="guide-strat-name">♥ Red Flush Machine</div>
+          <p><strong>Deck:</strong> Mirrored &nbsp;|&nbsp; <strong>Jokers:</strong> Suited Up · Bloodstone · Droll Joker<br>
+          Double hearts and diamonds make flushes trivially easy. Droll Joker adds +10 mult on each flush; Suited Up boosts base mult by 50%; Bloodstone multiplies per ♥. Convert key cards to ♥ with The Sun consumable to max procs.</p>
+        </div>
+        <div class="guide-strategy-card">
+          <div class="guide-strat-name">📈 Pair Snowball</div>
+          <p><strong>Deck:</strong> Standard or Short &nbsp;|&nbsp; <strong>Jokers:</strong> The Duo · Wee Joker · Supernova<br>
+          Play Pairs every hand. The Duo ×2 mult on pure Pairs; Wee Joker permanently accumulates chips and mult; Supernova rewards repetition. By round 6 each Pair hand is dramatically more powerful.</p>
+        </div>
+        <div class="guide-strategy-card">
+          <div class="guide-strat-name">👑 King's Face Avalanche</div>
+          <p><strong>Deck:</strong> King's Court &nbsp;|&nbsp; <strong>Jokers:</strong> Baron · Royal Court · Scary Face<br>
+          60 cards with 8 Kings. Hold Kings in hand (never play them) for Baron's ×1.5 per King. Use High Card or Pair plays to retain Kings as long as possible.</p>
+        </div>
+        <div class="guide-strategy-card">
+          <div class="guide-strat-name">🔢 Number Cruncher</div>
+          <p><strong>Deck:</strong> Commoner's &nbsp;|&nbsp; <strong>Jokers:</strong> Fibonacci · Scholar · The Alchemist<br>
+          No face cards, but Aces = 20 chips and +2 mult per hand. Fibonacci fires on A/2/3/5/8 for +8 mult each. The Alchemist converts your chip surplus into even more mult.</p>
+        </div>
+      </div>
+      <div class="guide-tip-box" style="margin-top:10px;">💡 <strong>Universal tips:</strong> Unspent gold is lost when you leave the shop — spend everything. Jokers are the strongest investment. Mult jokers scale better than chip jokers in later rounds. Funnel all 3 jokers toward the same hand type for maximum trigger frequency.</div>
+    </div>
+
+    <button class="btn btn-info" style="margin-top:6px;width:100%;" onclick="document.getElementById('overlay-guide').classList.add('hidden')">Close Guide ✕</button>
   </div>
 </div>
 
@@ -2359,8 +2724,15 @@ class Game {
     document.getElementById('btn-play').addEventListener('click',    ()=>this.playHand());
     document.getElementById('btn-discard').addEventListener('click', ()=>this.discard());
     document.getElementById('btn-rules').addEventListener('click',   ()=>document.getElementById('overlay-rules').classList.remove('hidden'));
+    document.getElementById('btn-guide').addEventListener('click',   ()=>document.getElementById('overlay-guide').classList.remove('hidden'));
     document.getElementById('btn-history').addEventListener('click', ()=>this.showHistory());
     document.getElementById('btn-mute').addEventListener('click',    ()=>this.toggleMute());
+
+    // Close guide overlay on backdrop click
+    document.getElementById('overlay-guide').addEventListener('click', e=>{
+      if(e.target===document.getElementById('overlay-guide'))
+        document.getElementById('overlay-guide').classList.add('hidden');
+    });
 
     // Close tip overlay on backdrop click
     document.getElementById('overlay-tip').addEventListener('click', e=>{
