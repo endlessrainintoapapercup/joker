@@ -1,0 +1,2399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Joker's Gambit v5</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: radial-gradient(ellipse at center, #1a0a2e 0%, #0d0618 100%);
+  color: #f0e6ff;
+  font-family: 'Georgia', serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+#game-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── Header ── */
+#header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,215,0,0.3);
+  border-radius: 12px;
+  padding: 10px 16px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+#header h1 { font-size: 1.4rem; color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.5); letter-spacing: 2px; }
+.stat-box { text-align: center; }
+.stat-label { font-size: 0.6rem; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
+.stat-value { font-size: 1.2rem; font-weight: bold; color: #ffd700; }
+#score-value { color: #7fff7f; }
+#target-value { color: #ff9966; }
+#gold-value { color: #ffd700; }
+
+/* ── Score Bar ── */
+#score-bar-wrap { background: rgba(0,0,0,0.4); border-radius: 8px; height: 14px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden; }
+#score-bar { height: 100%; background: linear-gradient(90deg, #3ddc84, #ffd700); border-radius: 8px; transition: width 0.5s ease; width: 0%; }
+
+/* ── Jokers ── */
+#joker-section { background: rgba(255,255,255,0.04); border: 1px solid rgba(160,80,255,0.3); border-radius: 12px; padding: 10px 14px; }
+#joker-section h3 { font-size: 0.72rem; color: #c084fc; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+#jokers-display { display: flex; gap: 8px; flex-wrap: wrap; }
+.joker-card {
+  background: linear-gradient(135deg, #3b0066, #6d0099);
+  border: 2px solid #c084fc;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  color: #f0d0ff;
+  max-width: 185px;
+  position: relative;
+  transition: transform 0.1s;
+}
+.joker-card .joker-name { font-weight: bold; color: #e9a0ff; display: block; margin-bottom: 2px; }
+.joker-rarity-Common { border-color: #60a5fa; }
+.joker-rarity-Uncommon { border-color: #fbbf24; }
+.joker-rarity-Rare { border-color: #f87171; }
+.joker-rarity-Legendary { border-color: #a855f7; box-shadow: 0 0 10px rgba(168,85,247,0.6); }
+@keyframes jokerPulse {
+  0%   { transform: scale(1); box-shadow: none; }
+  50%  { transform: scale(1.13); box-shadow: 0 0 18px rgba(255,215,0,0.9); }
+  100% { transform: scale(1); box-shadow: none; }
+}
+.joker-pulse { animation: jokerPulse 0.35s ease; }
+
+/* ── Consumables ── */
+#consumable-section { background: rgba(255,255,255,0.03); border: 1px solid rgba(100,200,100,0.25); border-radius: 12px; padding: 8px 14px; }
+#consumable-section h3 { font-size: 0.72rem; color: #86efac; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+#consumables-display { display: flex; gap: 8px; flex-wrap: wrap; }
+.consumable-card {
+  background: linear-gradient(135deg, #0a2a0a, #154015);
+  border: 1px solid #4ade80;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.73rem;
+  cursor: pointer;
+  color: #bbf7d0;
+  transition: border-color 0.15s, transform 0.1s;
+  max-width: 160px;
+}
+.consumable-card:hover { border-color: #ffd700; transform: translateY(-2px); }
+.cons-name { font-weight: bold; display: block; color: #4ade80; margin-bottom: 2px; }
+
+/* ── Hand Result ── */
+#hand-result { text-align: center; font-size: 1.05rem; min-height: 26px; color: #ffd700; font-style: italic; transition: opacity 0.3s; }
+
+/* ── Score Breakdown ── */
+#score-breakdown {
+  background: rgba(10,5,25,0.97);
+  border: 1px solid rgba(255,215,0,0.35);
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 0.82rem;
+  display: none;
+}
+#score-breakdown.active { display: block; }
+.breakdown-line { opacity: 0; transform: translateY(5px); transition: opacity 0.18s, transform 0.18s; color: #c0a8e0; }
+.breakdown-line.visible { opacity: 1; transform: translateY(0); }
+.breakdown-line.total-line { color: #7fff7f; font-weight: bold; font-size: 0.9rem; margin-top: 4px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 4px; }
+.breakdown-joker { color: #e9a0ff; }
+.breakdown-base { color: #93c5fd; }
+
+/* ── Projected Score ── */
+#projected-score-panel { background: rgba(255,215,0,0.07); border: 1px solid rgba(255,215,0,0.2); border-radius: 8px; padding: 8px 14px; display: flex; justify-content: space-between; align-items: center; min-height: 36px; }
+#projected-hand-name { color: #e9a0ff; font-size: 0.83rem; font-weight: bold; }
+#projected-formula { color: #aaa; font-size: 0.78rem; }
+#projected-total { color: #7fff7f; font-size: 1.05rem; font-weight: bold; }
+
+/* ── Card Area ── */
+#card-area { background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 16px; position: relative; }
+#card-area h3 { font-size: 0.68rem; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+#hand-display { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; min-height: 130px; align-items: center; }
+
+/* ── Cards ── */
+.card {
+  width: 70px; height: 102px;
+  border-radius: 8px;
+  background: #fff;
+  border: 2px solid #ccc;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 4px 5px;
+  font-weight: bold;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  user-select: none;
+  position: relative;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+.card:hover { transform: translateY(-7px); box-shadow: 0 7px 18px rgba(0,0,0,0.5); }
+.card.selected { transform: translateY(-15px); border-color: #ffd700; box-shadow: 0 0 14px rgba(255,215,0,0.7), 0 7px 18px rgba(0,0,0,0.5); }
+.card.red { color: #cc0000; }
+.card.black { color: #111; }
+.card-corner { font-size: 0.72rem; line-height: 1; }
+.card-corner.bottom { align-self: flex-end; transform: rotate(180deg); }
+.card-center { text-align: center; font-size: 1.3rem; }
+.card.played { animation: playCard 0.4s ease forwards; }
+@keyframes playCard {
+  0%   { transform: translateY(-15px) scale(1); opacity: 1; }
+  60%  { transform: translateY(-40px) scale(1.15); opacity: 1; }
+  100% { transform: translateY(0) scale(0.8); opacity: 0; }
+}
+.card-gilded { border: 2px solid #ffd700 !important; box-shadow: 0 0 8px rgba(255,215,0,0.7) !important; }
+.card-foil { border: 2px solid #60a5fa !important; background: linear-gradient(135deg,#fff,#bfdbfe,#fff) !important; }
+.card-ghost { opacity: 0.55; border-style: dashed !important; border-color: #a855f7 !important; }
+.card.card-target-mode { box-shadow: 0 0 10px rgba(255,215,0,0.5); cursor: crosshair; }
+
+/* ── Controls ── */
+#controls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; align-items: center; }
+.btn { padding: 10px 22px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.92rem; font-family: 'Georgia', serif; font-weight: bold; letter-spacing: 0.5px; transition: transform 0.1s, box-shadow 0.1s, opacity 0.1s; }
+.btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+.btn:active:not(:disabled) { transform: translateY(0); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-play { background: linear-gradient(135deg, #ffd700, #ffaa00); color: #1a0a00; font-size: 1rem; padding: 11px 28px; }
+.btn-discard { background: linear-gradient(135deg, #444, #666); color: #fff; }
+.btn-info { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #aaa; font-size: 0.72rem; padding: 6px 12px; }
+.btn-info.active { background: rgba(255,215,0,0.15); border-color: #ffd700; color: #ffd700; }
+.btn-shop { background: linear-gradient(135deg, #1a4a1a, #2d7a2d); color: #86efac; border: 1px solid #4ade80; }
+.counter-badge { display: inline-block; background: rgba(0,0,0,0.3); border-radius: 4px; padding: 2px 6px; margin-left: 5px; font-size: 0.82rem; }
+
+.btn-gambit {
+  background: linear-gradient(135deg, #7f1d1d, #b91c1c);
+  color: #fef2f2;
+  border: 2px solid #fca5a5;
+  font-size: 0.88rem;
+  padding: 10px 20px;
+}
+.btn-gambit:disabled { opacity: 0.3; cursor: not-allowed; }
+.btn-gambit.declared {
+  background: linear-gradient(135deg, #ffd700, #f59e0b);
+  color: #1a0a00;
+  border-color: #ffd700;
+  animation: gambittPulse 0.8s infinite;
+}
+@keyframes gambittPulse {
+  0%,100% { box-shadow: 0 0 6px rgba(255,215,0,0.4); }
+  50%      { box-shadow: 0 0 18px rgba(255,215,0,0.9); }
+}
+@keyframes urgentPulse { 0%,100% { color: #ff4444; } 50% { color: #ff9999; } }
+.urgent { animation: urgentPulse 0.8s infinite; }
+
+/* ── Overlays ── */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.87); display: flex; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(4px); }
+.overlay.hidden { display: none; }
+.modal { background: linear-gradient(135deg, #1e0a3c, #2d1155); border: 2px solid rgba(255,215,0,0.4); border-radius: 18px; padding: 28px 36px; text-align: center; max-width: 640px; width: 92%; box-shadow: 0 0 60px rgba(160,80,255,0.3); }
+.modal h2 { font-size: 1.8rem; color: #ffd700; margin-bottom: 8px; text-shadow: 0 0 20px rgba(255,215,0,0.5); }
+.modal p { color: #c0a8e0; margin-bottom: 16px; line-height: 1.6; }
+
+/* Joker select */
+#joker-choices { display: flex; gap: 12px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
+.joker-choice { background: linear-gradient(135deg, #2a0050, #4a0080); border: 2px solid #6a20a0; border-radius: 12px; padding: 12px; cursor: pointer; width: 140px; transition: border-color 0.15s, transform 0.15s; text-align: left; }
+.joker-choice:hover { border-color: #ffd700; transform: translateY(-4px); }
+.joker-choice-name { font-weight: bold; color: #e9a0ff; font-size: 0.87rem; margin-bottom: 4px; }
+.joker-choice-desc { font-size: 0.7rem; color: #c0a0d8; line-height: 1.4; }
+.joker-choice-tier { font-size: 0.65rem; margin-top: 5px; font-weight: bold; }
+.tier-Common { color: #60a5fa; }
+.tier-Uncommon { color: #fbbf24; }
+.tier-Rare { color: #f87171; }
+.tier-Legendary { color: #a855f7; }
+.joker-replace-card { background: linear-gradient(135deg, #3b0066, #6d0099); border: 2px solid #c084fc; border-radius: 12px; padding: 12px; cursor: pointer; width: 140px; transition: border-color 0.15s, transform 0.15s; text-align: left; }
+.joker-replace-card:hover { border-color: #ff4444; transform: translateY(-4px); box-shadow: 0 0 12px rgba(255,68,68,0.5); }
+
+/* Deck Select */
+#deck-choices { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
+.deck-choice { background: linear-gradient(135deg, #0a1a3c, #1a3060); border: 2px solid #3060a0; border-radius: 12px; padding: 14px 10px; cursor: pointer; width: 155px; transition: border-color 0.15s, transform 0.15s; text-align: center; }
+.deck-choice:hover { border-color: #ffd700; transform: translateY(-4px); box-shadow: 0 0 16px rgba(255,215,0,0.3); }
+.deck-choice.locked { opacity: 0.45; cursor: not-allowed; }
+.deck-choice-icon { font-size: 1.8rem; margin-bottom: 5px; }
+.deck-choice-name { font-weight: bold; color: #e9c060; font-size: 0.85rem; margin-bottom: 5px; }
+.deck-choice-desc { font-size: 0.65rem; color: #90a0c0; line-height: 1.3; }
+.deck-synergy { font-size: 0.6rem; color: #9ca3af; margin-top: 5px; font-style: italic; }
+.deck-unlock-label { font-size: 0.6rem; color: #f97316; margin-top: 3px; }
+
+/* Shop */
+#overlay-shop .modal { max-width: 860px; padding: 20px 24px; }
+.shop-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.shop-gold { font-size: 1.1rem; font-weight: bold; color: #ffd700; }
+.shop-active-jokers { margin-bottom: 14px; }
+.shop-active-jokers h4 { font-size: 0.7rem; color: #c084fc; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+.shop-active-joker { display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #3b0066, #6d0099); border: 1px solid #c084fc; border-radius: 6px; padding: 4px 8px; font-size: 0.72rem; color: #f0d0ff; margin: 3px; }
+.sell-btn { background: #7f1d1d; border: none; color: #fca5a5; border-radius: 4px; padding: 2px 6px; cursor: pointer; font-size: 0.65rem; }
+.sell-btn:hover { background: #991b1b; }
+.shop-lanes { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.shop-lane { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px; }
+.shop-lane h4 { font-size: 0.68rem; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; text-align: center; }
+.shop-item { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px; margin-bottom: 8px; }
+.shop-item-name { font-weight: bold; color: #f0d0ff; font-size: 0.78rem; margin-bottom: 3px; }
+.shop-item-desc { font-size: 0.68rem; color: #9ca3af; line-height: 1.3; margin-bottom: 6px; }
+.shop-item-footer { display: flex; justify-content: space-between; align-items: center; }
+.shop-item-cost { font-size: 0.75rem; color: #ffd700; font-weight: bold; }
+.buy-btn { background: linear-gradient(135deg, #1a4a1a, #2a7a2a); border: none; color: #86efac; border-radius: 4px; padding: 3px 10px; cursor: pointer; font-size: 0.72rem; font-weight: bold; }
+.buy-btn:hover:not(:disabled) { background: linear-gradient(135deg, #2a6a2a, #3a9a3a); }
+.buy-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* History */
+.history-entry { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 12px; margin-bottom: 8px; text-align: left; font-size: 0.78rem; color: #c0a8e0; }
+.history-entry.won { border-color: rgba(74,222,128,0.4); }
+.hof-entry { display: flex; justify-content: space-between; background: rgba(255,215,0,0.06); border: 1px solid rgba(255,215,0,0.2); border-radius: 8px; padding: 6px 12px; margin-bottom: 5px; font-size: 0.78rem; }
+
+/* Victory */
+#overlay-victory .modal { background: linear-gradient(135deg, #0a2000, #1a4000); border: 2px solid rgba(255,215,0,0.7); box-shadow: 0 0 80px rgba(100,255,100,0.3), 0 0 40px rgba(255,215,0,0.2); }
+#overlay-victory h2 { color: #ffd700; font-size: 2.2rem; }
+#overlay-victory p { color: #90e890; }
+.victory-stats { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,215,0,0.3); border-radius: 10px; padding: 14px; margin: 14px 0; text-align: left; font-size: 0.83rem; color: #c0e8c0; line-height: 2; }
+.victory-stats strong { color: #ffd700; }
+
+/* Milestone unlock toast */
+#milestone-toast { position: fixed; top: 20px; right: 20px; background: linear-gradient(135deg,#1a0a3c,#2d1155); border: 2px solid #ffd700; border-radius: 12px; padding: 12px 18px; color: #ffd700; font-size: 0.85rem; font-weight: bold; z-index: 200; opacity: 0; transition: opacity 0.4s; pointer-events: none; max-width: 260px; }
+#milestone-toast.show { opacity: 1; }
+
+/* Rules / Reference modal */
+.rules-table { width:100%;font-size:0.8rem;border-collapse:collapse; }
+.rules-table tr td, .rules-table tr th { padding: 4px 6px; }
+.rules-table tr:nth-child(even) td { background: rgba(255,255,255,0.04); }
+.rules-tab { margin-right: 4px; margin-bottom: 6px; }
+.rules-tab.active { background: rgba(255,215,0,0.15); border-color: #ffd700; color: #ffd700; }
+.rules-tab-panel { display: none; }
+.rules-tab-panel.active { display: block; }
+
+/* Misc */
+#score-log { font-size: 0.7rem; color: #8a7aaa; text-align: center; min-height: 16px; }
+#btn-skip-joker { background: none; border: none; color: #6b7280; font-size: 0.75rem; cursor: pointer; margin-top: 8px; font-family: Georgia, serif; padding: 4px 8px; }
+#btn-skip-joker:hover { color: #9ca3af; }
+
+/* Tip modal */
+#overlay-tip .modal { max-width: 440px; text-align: left; }
+#overlay-tip h2 { font-size: 1.3rem; }
+
+/* Consumable target overlay */
+#overlay-consumable-target .modal { max-width: 700px; }
+#cons-target-hand { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; min-height:130px; align-items:center; margin: 16px 0; }
+
+/* Joker buy confirm overlay */
+#overlay-joker-buy-confirm .modal { max-width: 520px; }
+
+/* Go summary / tip boxes */
+#go-summary { background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:14px; text-align:left; font-size:0.82rem; color:#c0a8e0; line-height:2; margin-bottom:12px; }
+#go-tip { background:rgba(255,215,0,0.08); border:1px solid rgba(255,215,0,0.3); border-radius:8px; padding:10px 14px; font-size:0.83rem; color:#ffd700; margin-bottom:16px; font-style:italic; }
+
+@media (max-width: 640px) {
+  .card { width: 58px; height: 86px; }
+  .card-center { font-size: 1.1rem; }
+  #header h1 { font-size: 1rem; }
+  .stat-value { font-size: 1rem; }
+  .shop-lanes { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+<div id="game-container">
+  <!-- Header -->
+  <div id="header">
+    <h1>🃏 Joker's Gambit</h1>
+    <div class="stat-box"><div class="stat-label">Score</div><div class="stat-value" id="score-value">0</div></div>
+    <div class="stat-box"><div class="stat-label">Target</div><div class="stat-value" id="target-value">300</div></div>
+    <div class="stat-box"><div class="stat-label">Round</div><div class="stat-value" id="round-value">1</div></div>
+    <div class="stat-box"><div class="stat-label">Hands Left</div><div class="stat-value" id="hands-value">4</div></div>
+    <div class="stat-box"><div class="stat-label">Discards</div><div class="stat-value" id="discards-value">3</div></div>
+    <div class="stat-box"><div class="stat-label">Gold</div><div class="stat-value" id="gold-value">💰 0g</div></div>
+    <div id="high-score-display" style="font-size:0.78rem;color:#888;">Best: <span id="hs-span">Round 0</span></div>
+    <button class="btn btn-info" id="btn-mute">🔊</button>
+  </div>
+
+  <!-- Score Bar -->
+  <div id="score-bar-wrap"><div id="score-bar"></div></div>
+
+  <!-- Joker Panel -->
+  <div id="joker-section">
+    <h3 id="joker-section-title">🃏 Active Jokers (0/3)</h3>
+    <div id="jokers-display"><em style="color:#555;font-size:0.8rem;">None yet — win a round to earn jokers!</em></div>
+  </div>
+
+  <!-- Consumables Panel -->
+  <div id="consumable-section">
+    <h3>🌟 Consumables <span style="font-size:0.65rem;color:#6b7280;">(click to use)</span>
+      <button class="btn btn-info" style="padding:2px 8px;font-size:0.65rem;margin-left:6px;" onclick="showTip('What do Consumables do?','Consumables are used during a round — they permanently change cards, add resources, or give one-time score boosts. Some require you to select target cards first via a dedicated panel. They cannot be used after a round ends.')">?</button>
+    </h3>
+    <div id="consumables-display"><em style="color:#555;font-size:0.78rem;">No consumables held</em></div>
+  </div>
+
+  <!-- Hand Result -->
+  <div id="hand-result"></div>
+  <div id="score-log"></div>
+
+  <!-- Score Breakdown -->
+  <div id="score-breakdown"></div>
+
+  <!-- Projected Score -->
+  <div id="projected-score-panel">
+    <span id="projected-placeholder" style="flex:1;text-align:center;color:#555;font-size:0.78rem;font-style:italic;">Select cards to preview score</span>
+    <span id="projected-hand-name" style="display:none"></span>
+    <span style="flex:1" id="projected-formula" style="display:none"></span>
+    <span id="projected-total" style="display:none"></span>
+  </div>
+
+  <!-- Card Area -->
+  <div id="card-area">
+    <h3>Your Hand — select up to 5 cards</h3>
+    <div id="hand-display"></div>
+  </div>
+
+  <!-- Controls -->
+  <div id="controls">
+    <button class="btn btn-play" id="btn-play">▶ Play Hand</button>
+    <button class="btn btn-info" style="padding:6px 10px;font-size:0.72rem;" onclick="showTip('How Scoring Works','Score = (Base Chips + Card Values + Bonus Chips) × (Base Mult + Mult Bonus). Higher poker hands give bigger base values. Jokers add chips and mult. Mult jokers scale everything — even a small mult increase has a huge effect. A=11 (or 20 in Commoner\'s Deck), face cards=10.')">?</button>
+    <button class="btn btn-discard" id="btn-discard">↩ Discard <span class="counter-badge" id="discard-count">3</span></button>
+    <button class="btn btn-gambit" id="btn-gambit" onclick="game.declareGambit()">🎲 The Gambit</button>
+    <button class="btn btn-info" id="btn-rules">📖 Reference</button>
+    <button class="btn btn-info" id="btn-history">📜 History</button>
+  </div>
+</div>
+
+<!-- Milestone Toast -->
+<div id="milestone-toast"></div>
+
+<!-- ═══ OVERLAYS ═══ -->
+
+<!-- Deck Select -->
+<div class="overlay" id="overlay-deck-select">
+  <div class="modal" style="max-width:800px;">
+    <h2>🃏 Choose Your Deck
+      <button class="btn btn-info" style="font-size:0.7rem;padding:4px 10px;margin-left:10px;vertical-align:middle;" onclick="showTip('Which Deck Should I Pick?','Standard Deck is the most flexible — good for learning. Short Deck suits aggressive play with fewer but stronger cards. King\'s Court and Mirrored Deck reward building around specific suits or face cards. Commoner\'s Deck removes face cards but Aces count for 20 chips — starts each hand with +2 mult. Pair with number-rank jokers like Fibonacci, Odd Todd, and Scholar.')">?</button>
+    </h2>
+    <p>Pick a starting deck to begin your run. Each deck changes the cards available to you.</p>
+    <div id="deck-choices"></div>
+    <div id="hall-of-fame" style="margin-top:12px;"></div>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:10px;">
+      <button class="btn btn-info" id="btn-daily" style="display:none;">⭐ Daily Gambit</button>
+    </div>
+    <p style="font-size:0.7rem;color:#555;margin-top:8px;">Your deck choice is locked for the entire run.</p>
+  </div>
+</div>
+
+<!-- Joker Select -->
+<div class="overlay hidden" id="overlay-joker">
+  <div class="modal">
+    <h2 id="joker-overlay-title">🎉 Round Complete!</h2>
+    <p id="joker-overlay-desc">Choose a Joker to boost your next rounds.</p>
+    <div id="joker-choices"></div>
+    <p id="joker-overlay-hint" style="font-size:0.72rem;color:#666;"></p>
+    <div style="display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:8px;">
+      <button id="btn-skip-joker">Skip — take nothing</button>
+      <button class="btn btn-info" style="padding:4px 10px;font-size:0.7rem;" onclick="showTip('How to Choose a Joker','Look at what hand types you play most, then choose jokers that trigger on those hands. Mult jokers (adding to ×Mult) are stronger than chip jokers (+Chips) in later rounds because they scale multiplicatively with everything else. Rare jokers are much more powerful but offered less often. Build a synergy — 2–3 jokers that all fire on the same hand type beats 3 jokers that fire on different conditions.')">?</button>
+    </div>
+  </div>
+</div>
+
+<!-- Joker Buy Confirm (Change 4B) -->
+<div class="overlay hidden" id="overlay-joker-buy-confirm">
+  <div class="modal">
+    <h2>🔁 Replace a Joker?</h2>
+    <p>You already have <strong id="jbc-max">3</strong> jokers. Buying this will replace one.</p>
+    <div id="jbc-new-joker" style="background:rgba(0,0,0,0.3);border:2px solid #c084fc;border-radius:10px;padding:12px;margin:12px 0;text-align:left;"></div>
+    <p style="font-size:0.78rem;color:#aaa;margin-bottom:8px;">Your current jokers:</p>
+    <div id="jbc-current-jokers" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;justify-content:center;"></div>
+    <div style="display:flex;gap:12px;justify-content:center;">
+      <button class="btn btn-play" id="btn-jbc-proceed">Proceed — choose which to replace</button>
+      <button class="btn btn-discard" id="btn-jbc-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Consumable Target Overlay (Change 1) -->
+<div class="overlay hidden" id="overlay-consumable-target">
+  <div class="modal" style="max-width:700px;">
+    <h2 id="cons-overlay-title">🌟 Apply Consumable</h2>
+    <p id="cons-overlay-desc"></p>
+    <p id="cons-overlay-hint" style="font-size:0.78rem;color:#ffd700;margin-bottom:0;"></p>
+    <div id="cons-target-hand"></div>
+    <div style="display:flex;gap:12px;justify-content:center;">
+      <button class="btn btn-play" id="btn-cons-confirm">✓ Confirm</button>
+      <button class="btn btn-discard" id="btn-cons-cancel">✕ Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Shop -->
+<div class="overlay hidden" id="overlay-shop">
+  <div class="modal" style="max-width:880px;overflow-y:auto;max-height:90vh;">
+    <div class="shop-header">
+      <h2 style="margin:0">🛒 The Shop
+        <button class="btn btn-info" style="font-size:0.7rem;padding:4px 10px;margin-left:8px;vertical-align:middle;" onclick="showTip('Shop Guide','Jokers are permanent and the most powerful investment. Consumables are one-use tools for tough spots. Card enhancements persist across the whole run. Run Modifiers change the rules permanently. Gold left over when you leave the shop is lost — spend everything!')">?</button>
+      </h2>
+      <span class="shop-gold" id="shop-gold-display">💰 0g</span>
+    </div>
+    <div class="shop-active-jokers">
+      <h4>Active Jokers (sell for 2g each)</h4>
+      <div id="shop-active-jokers"></div>
+    </div>
+    <div class="shop-lanes" id="shop-lanes"></div>
+    <button class="btn btn-play" id="btn-leave-shop" style="width:100%;">Leave Shop →</button>
+  </div>
+</div>
+
+<!-- Game Over -->
+<div class="overlay hidden" id="overlay-gameover">
+  <div class="modal">
+    <h2>💀 Game Over</h2>
+    <p>Round reached: <strong id="go-round">1</strong> &nbsp;|&nbsp; Final score: <strong id="go-score">0</strong></p>
+    <p id="go-hs" style="color:#ffd700;margin-top:-10px;margin-bottom:12px;"></p>
+    <div id="go-summary"></div>
+    <div id="go-tip"></div>
+    <button class="btn btn-play" onclick="game.restart()">▶ Play Again</button>
+  </div>
+</div>
+
+<!-- Victory -->
+<div class="overlay hidden" id="overlay-victory">
+  <div class="modal">
+    <h2>🏆 You Won!</h2>
+    <p>You conquered all 10 rounds of Joker's Gambit!</p>
+    <div class="victory-stats" id="victory-stats"></div>
+    <button class="btn btn-play" onclick="game.restart()">▶ Play Again</button>
+  </div>
+</div>
+
+<!-- Rules / Reference (tabbed — Change 5 Tier 3) -->
+<div class="overlay hidden" id="overlay-rules">
+  <div class="modal" style="max-width:520px;text-align:left;overflow-y:auto;max-height:88vh;">
+    <h2 style="text-align:center;margin-bottom:10px;">📖 Reference</h2>
+    <div id="rules-tabs" style="display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap;">
+      <button class="btn btn-info rules-tab active" data-tab="hand-values">Hand Values</button>
+      <button class="btn btn-info rules-tab" data-tab="joker-guide">Joker Guide</button>
+      <button class="btn btn-info rules-tab" data-tab="deck-guide">Deck Guide</button>
+      <button class="btn btn-info rules-tab" data-tab="formula">Scoring Formula</button>
+    </div>
+    <div id="rules-tab-content">
+      <!-- Hand Values -->
+      <div class="rules-tab-panel active" id="panel-hand-values">
+        <table class="rules-table">
+          <tr style="color:#ffd700;"><th>Hand</th><th>Chips</th><th>Mult</th></tr>
+          <tr><td>High Card</td><td>5</td><td>×1</td></tr>
+          <tr><td>Pair</td><td>10</td><td>×2</td></tr>
+          <tr><td>Two Pair</td><td>20</td><td>×2</td></tr>
+          <tr><td>Three of a Kind</td><td>30</td><td>×3</td></tr>
+          <tr><td>Straight</td><td>30</td><td>×4</td></tr>
+          <tr><td>Flush</td><td>35</td><td>×4</td></tr>
+          <tr><td>Full House</td><td>40</td><td>×4</td></tr>
+          <tr><td>Four of a Kind</td><td>60</td><td>×7</td></tr>
+          <tr><td>Straight Flush</td><td>100</td><td>×8</td></tr>
+          <tr><td>Royal Flush</td><td>100</td><td>×8</td></tr>
+        </table>
+        <p style="margin-top:10px;font-size:0.73rem;color:#888;">Score = (Base Chips + Card Values + Bonus Chips) × (Base Mult + Mult Bonus)<br>A=11 (Commoner's Deck: A=20), Face cards=10.</p>
+      </div>
+      <!-- Joker Guide -->
+      <div class="rules-tab-panel" id="panel-joker-guide">
+        <p style="font-size:0.8rem;color:#c0a8e0;line-height:1.7;">
+          <strong style="color:#ffd700;">Chip jokers</strong> add flat chips to the Chips total.
+          <strong style="color:#ffd700;">Mult jokers</strong> add to the Mult total.
+          <strong style="color:#ffd700;">Multiplicative jokers (×)</strong> multiply your entire Mult —
+          these are the most powerful. Jokers are permanent for the whole run.<br><br>
+          <strong style="color:#60a5fa;">Common</strong> — offered often, moderate power.<br>
+          <strong style="color:#fbbf24;">Uncommon</strong> — offered less, strong synergies.<br>
+          <strong style="color:#f87171;">Rare</strong> — rare offers, very powerful.<br>
+          <strong style="color:#a855f7;">Legendary</strong> — only offered after winning once.<br><br>
+          Build around 2–3 jokers that all fire on the same hand type for maximum synergy.
+        </p>
+      </div>
+      <!-- Deck Guide -->
+      <div class="rules-tab-panel" id="panel-deck-guide">
+        <table class="rules-table">
+          <tr style="color:#ffd700;"><th>Deck</th><th>Cards</th><th>A Value</th><th>Best Joker Pairs</th></tr>
+          <tr><td>Standard</td><td>52 (full)</td><td>11</td><td>Abstract Joker, Loyalty Card, Midas Touch</td></tr>
+          <tr><td>Commoner's</td><td>40 (2–10+A)</td><td>20</td><td>Odd Todd, Fibonacci, Scholar, The Alchemist</td></tr>
+          <tr><td>King's Court</td><td>60 (+2K/suit)</td><td>11</td><td>Baron, Royal Court, Scary Face</td></tr>
+          <tr><td>Short Deck</td><td>36 (6–A)</td><td>11</td><td>Half Joker, The Duo, Erosion</td></tr>
+          <tr><td>Mirrored</td><td>78 (2×♥♦)</td><td>11</td><td>Suited Up, Bloodstone, Greedy Joker</td></tr>
+          <tr><td>Ghost</td><td>52 (8 ghost)</td><td>11</td><td>Road Runner, Suited Up, Droll Joker</td></tr>
+          <tr><td>Speed</td><td>52 (full)</td><td>11</td><td>Abstract Joker, Loyalty Card, Erosion</td></tr>
+        </table>
+        <p style="font-size:0.73rem;color:#888;margin-top:8px;">Ghost cards are wild for flush/straight detection but score 0 chips. Commoner's Deck starts each hand with +2 mult.</p>
+      </div>
+      <!-- Scoring Formula -->
+      <div class="rules-tab-panel" id="panel-formula">
+        <p style="font-size:0.8rem;color:#c0a8e0;line-height:1.8;">
+          <strong style="color:#93c5fd;">Formula:</strong> Score = (Base Chips + Card Values + Bonus Chips) × (Base Mult + Mult Bonus)<br><br>
+          <strong style="color:#ffd700;">Worked Example:</strong><br>
+          Full House with 2× Aces + Zany Joker:<br>
+          Base = 40 chips × 4 mult<br>
+          Card values: A(11)+A(11)+K(10)+K(10)+Q(10) = 52<br>
+          Zany Joker: +12 mult<br>
+          Score = (40+52) × (4+12) = 92 × 16 = <strong style="color:#7fff7f;">1,472</strong><br><br>
+          <strong style="color:#e9a0ff;">Additive vs. Multiplicative:</strong><br>
+          Additive jokers add to chips or mult totals.<br>
+          Multiplicative jokers (Baron, Loyalty Card, Bloodstone) multiply the <em>entire</em> mult —
+          doubling it doubles your whole score. They fire after all additive jokers.
+        </p>
+      </div>
+    </div>
+    <button class="btn btn-info" style="margin-top:14px;width:100%;" onclick="document.getElementById('overlay-rules').classList.add('hidden')">Close</button>
+  </div>
+</div>
+
+<!-- Tip Modal (Change 5 Tier 2) -->
+<div class="overlay hidden" id="overlay-tip">
+  <div class="modal" style="max-width:440px;text-align:left;">
+    <h2 id="tip-title" style="font-size:1.2rem;margin-bottom:10px;"></h2>
+    <p id="tip-body" style="font-size:0.87rem;line-height:1.7;color:#c0a8e0;white-space:pre-line;"></p>
+    <button class="btn btn-info" style="margin-top:14px;width:100%;" onclick="document.getElementById('overlay-tip').classList.add('hidden')">Got it ✓</button>
+  </div>
+</div>
+
+<!-- History -->
+<div class="overlay hidden" id="overlay-history">
+  <div class="modal" style="max-width:500px;text-align:left;overflow-y:auto;max-height:85vh;">
+    <h2 style="text-align:center;">📜 Run History</h2>
+    <div id="history-content" style="margin:14px 0;"></div>
+    <button class="btn btn-info" style="width:100%;margin-top:8px;" onclick="document.getElementById('overlay-history').classList.add('hidden')">Close</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  GLOBAL TIP HELPER (Change 5 Tier 2)
+// ═══════════════════════════════════════════════════════
+function showTip(title, body) {
+  document.getElementById('tip-title').textContent = title;
+  document.getElementById('tip-body').textContent  = body;
+  document.getElementById('overlay-tip').classList.remove('hidden');
+}
+
+// ═══════════════════════════════════════════════════════
+//  PRNG (Mulberry32 — for Daily Seed mode)
+// ═══════════════════════════════════════════════════════
+function mulberry32(seed) {
+  return function() {
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+// ═══════════════════════════════════════════════════════
+//  CONSTANTS — Change 6: reshaped target curve
+// ═══════════════════════════════════════════════════════
+const ROUND_TARGETS = [200, 300, 400, 550, 800, 1000, 1500, 1950, 2700, 3800];
+
+const ROUND_CONFIG = [
+  { hands:4, discards:3, baseGold:2, shopRound:false, handSize:7 }, // R1
+  { hands:4, discards:3, baseGold:2, shopRound:false, handSize:7 }, // R2
+  { hands:4, discards:2, baseGold:2, shopRound:true,  handSize:7 }, // R3
+  { hands:5, discards:2, baseGold:3, shopRound:false, handSize:7 }, // R4
+  { hands:5, discards:2, baseGold:3, shopRound:false, handSize:8 }, // R5
+  { hands:5, discards:2, baseGold:3, shopRound:true,  handSize:8 }, // R6
+  { hands:5, discards:2, baseGold:4, shopRound:false, handSize:8 }, // R7
+  { hands:6, discards:2, baseGold:4, shopRound:false, handSize:8 }, // R8
+  { hands:6, discards:2, baseGold:4, shopRound:true,  handSize:8 }, // R9
+  { hands:6, discards:2, baseGold:0, shopRound:false, handSize:8 }, // R10
+];
+const SHOP_ROUNDS = [3, 6, 9];
+
+// Change 7C: adjusted tier weights to increase Rare appearance
+const TIER_WEIGHTS = { Common: 55, Uncommon: 30, Rare: 15 };
+
+const DECK_TYPES = [
+  { id: 'standard',     icon: '🂡', name: 'Standard Deck',    desc: 'Normal 52-card deck. Balanced and forgiving.', synergy: ['Abstract Joker', 'Loyalty Card', 'Midas Touch'] },
+  // Change 8: updated Commoner's Deck description to reflect Ace=20 and +2 mult
+  { id: 'no_faces',     icon: '🔢', name: "Commoner's Deck",  desc: "No face cards. 40 cards (2–10 + A). Aces count as 20 chips. Starts each hand with +2 mult.", synergy: ['Odd Todd', 'Fibonacci', 'Scholar', 'The Alchemist'] },
+  { id: 'double_kings', icon: '🤴', name: "King's Court",     desc: 'Two extra Kings per suit. Face-heavy. 60 cards.', synergy: ['Baron', 'Royal Court', 'Scary Face'] },
+  { id: 'short_deck',   icon: '✂️', name: 'Short Deck',       desc: 'Low cards (2–5) removed. 36 high-value cards.', synergy: ['Half Joker', 'The Duo', 'Erosion'] },
+  { id: 'mirrored',     icon: '🪞', name: 'Mirrored Deck',    desc: 'Double ♥ and ♦ suits. Red-suit heavy. 78 cards.', synergy: ['Suited Up', 'Bloodstone', 'Greedy Joker'] },
+  { id: 'ghost',        icon: '👻', name: 'Ghost Deck',        desc: '52 cards, 8 are Ghost — wild for flush/straight but score 0 chips.', synergy: ['Road Runner', 'Suited Up', 'Droll Joker'] },
+  { id: 'speed',        icon: '⚡', name: 'Speed Deck',        desc: 'Standard 52 cards. +1 hand per round, targets scale 10% faster.', synergy: ['Abstract Joker', 'Loyalty Card', 'Erosion'], unlockKey: 'round3' },
+];
+
+// ═══════════════════════════════════════════════════════
+//  CARD CLASS
+// ═══════════════════════════════════════════════════════
+class Card {
+  constructor(suit, rank, deckType) {
+    this.suit = suit;
+    this.rank = rank;
+    this.deckType = deckType;
+    this.id = `${rank}${suit}_${Math.random().toString(36).slice(2,6)}`;
+    this.enhancements = new Set();
+    this.isGhost = false;
+  }
+  get value() {
+    if (this.isGhost) return 0;
+    if (['J','Q','K'].includes(this.rank)) return 10;
+    // Change 8: Commoner's Deck Ace value raised from 15 to 20
+    if (this.rank === 'A') return (this.deckType === 'no_faces') ? 20 : 11;
+    return parseInt(this.rank);
+  }
+  get numRank() {
+    const map = {'J':11,'Q':12,'K':13,'A':14};
+    return map[this.rank] ?? parseInt(this.rank);
+  }
+  get isRed() { return this.suit === '♥' || this.suit === '♦'; }
+  get colorClass() { return this.isRed ? 'red' : 'black'; }
+}
+
+// ═══════════════════════════════════════════════════════
+//  DECK CLASS
+// ═══════════════════════════════════════════════════════
+class Deck {
+  constructor(deckType = 'standard', rng = Math.random.bind(Math)) {
+    this.deckType = deckType;
+    this.rng = rng;
+    this.cards = [];
+    this._buildDeck();
+    this.shuffle();
+  }
+
+  _buildDeck() {
+    const suits = ['♠','♥','♦','♣'];
+    const allRanks = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+    this.cards = [];
+
+    switch(this.deckType) {
+      case 'no_faces': {
+        const ranks = ['2','3','4','5','6','7','8','9','10','A'];
+        for (const s of suits) for (const r of ranks) this.cards.push(new Card(s,r,this.deckType));
+        break;
+      }
+      case 'double_kings': {
+        for (const s of suits) for (const r of allRanks) this.cards.push(new Card(s,r,this.deckType));
+        for (const s of suits) { this.cards.push(new Card(s,'K',this.deckType)); this.cards.push(new Card(s,'K',this.deckType)); }
+        break;
+      }
+      case 'short_deck': {
+        const ranks = ['6','7','8','9','10','J','Q','K','A'];
+        for (const s of suits) for (const r of ranks) this.cards.push(new Card(s,r,this.deckType));
+        break;
+      }
+      case 'mirrored': {
+        for (const s of suits) for (const r of allRanks) this.cards.push(new Card(s,r,this.deckType));
+        for (const s of ['♥','♦']) for (const r of allRanks) this.cards.push(new Card(s,r,this.deckType));
+        break;
+      }
+      case 'ghost': {
+        for (const s of suits) for (const r of allRanks) this.cards.push(new Card(s,r,this.deckType));
+        this._pendingGhostMark = true;
+        break;
+      }
+      default: // standard, speed
+        for (const s of suits) for (const r of allRanks) this.cards.push(new Card(s,r,this.deckType));
+    }
+  }
+
+  reset() {
+    const kept = this.cards.filter(c => !c.enhancements.has('removed'));
+    const enhMap = {};
+    for (const c of kept) if (c.enhancements.size > 0 || c.isGhost) enhMap[`${c.rank}${c.suit}`] = c;
+    this._buildDeck();
+    for (const c of this.cards) {
+      const key = `${c.rank}${c.suit}`;
+      if (enhMap[key]) {
+        c.enhancements = new Set(enhMap[key].enhancements);
+        c.isGhost = enhMap[key].isGhost;
+      }
+    }
+    this.shuffle();
+    if (this._pendingGhostMark) {
+      this._pendingGhostMark = false;
+      const shuffled = [...this.cards].sort(() => this.rng() - 0.5);
+      shuffled.slice(0,8).forEach(c => { c.isGhost = true; });
+    }
+  }
+
+  shuffle() {
+    for (let i = this.cards.length - 1; i > 0; i--) {
+      const j = Math.floor(this.rng() * (i + 1));
+      [this.cards[i], this.cards[j]] = [this.cards[j], this.cards[i]];
+    }
+    if (this._pendingGhostMark) {
+      this._pendingGhostMark = false;
+      this.cards.slice(0,8).forEach(c => { c.isGhost = true; });
+    }
+  }
+
+  draw(n) {
+    const drawn = [];
+    for (let i = 0; i < n; i++) {
+      if (this.cards.length === 0) this.reset();
+      drawn.push(this.cards.pop());
+    }
+    return drawn;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  HAND EVALUATOR
+// ═══════════════════════════════════════════════════════
+const HAND_RANKS = {
+  'Royal Flush':    { base: 120, mult: 8 },
+  'Straight Flush': { base: 100, mult: 8 },
+  'Four of a Kind': { base: 60,  mult: 7 },
+  'Full House':     { base: 40,  mult: 4 },
+  'Flush':          { base: 35,  mult: 4 },
+  'Straight':       { base: 30,  mult: 4 },
+  'Three of a Kind':{ base: 30,  mult: 3 },
+  'Two Pair':       { base: 20,  mult: 2 },
+  'Pair':           { base: 10,  mult: 2 },
+  'High Card':      { base: 5,   mult: 1 },
+};
+
+function evaluateHand(cards) {
+  if (!cards || cards.length === 0) return { name: 'High Card', base: 5, mult: 1 };
+
+  const nonGhost = cards.filter(c => !c.isGhost);
+  const ghostCount = cards.length - nonGhost.length;
+  const suits = nonGhost.map(c => c.suit);
+  const numRanks = nonGhost.map(c => c.numRank).sort((a, b) => a - b);
+
+  const isFlushStrict = cards.length === 5 && (() => {
+    if (ghostCount === 0) return new Set(suits).size === 1;
+    return new Set(suits).size === 1;
+  })();
+
+  const isStraight = cards.length === 5 && (() => {
+    if (numRanks.length === 0) return ghostCount === 5;
+    const sorted = [...numRanks];
+    const lowAce = sorted.includes(14) && [2,3,4,5].filter(r => sorted.includes(r) || ghostCount > 0).length >= 4;
+    if (lowAce) {
+      const needed = [1,2,3,4,5].filter(r => !sorted.map(x => x===14?1:x).includes(r)).length;
+      if (needed <= ghostCount) return true;
+    }
+    const range = sorted[sorted.length-1] - sorted[0];
+    if (range > 4) return false;
+    const unique = new Set(sorted).size;
+    const gapsFilled = (range + 1) - unique;
+    return gapsFilled <= ghostCount && unique + ghostCount >= 5;
+  })();
+
+  const freq = {};
+  for (const r of numRanks) freq[r] = (freq[r] || 0) + 1;
+  const counts = Object.values(freq).sort((a, b) => b - a);
+
+  let handName;
+  if (isFlushStrict && isStraight) {
+    const isRoyal = numRanks.includes(14) && numRanks.includes(13);
+    handName = isRoyal ? 'Royal Flush' : 'Straight Flush';
+  } else if (counts[0] === 4) {
+    handName = 'Four of a Kind';
+  } else if (counts[0] === 3 && ghostCount >= 1 && counts[0] + ghostCount >= 4) {
+    handName = 'Four of a Kind';
+  } else if (counts[0] === 2 && ghostCount >= 2) {
+    handName = 'Four of a Kind';
+  } else if (ghostCount >= 4) {
+    handName = 'Four of a Kind';
+  } else if (counts[0] === 3 && counts[1] === 2) {
+    handName = 'Full House';
+  } else if (isFlushStrict) {
+    handName = 'Flush';
+  } else if (isStraight) {
+    handName = 'Straight';
+  } else if (counts[0] === 3) {
+    handName = 'Three of a Kind';
+  } else if (counts[0] === 2 && counts[1] === 2) {
+    handName = 'Two Pair';
+  } else if (counts[0] === 2) {
+    handName = 'Pair';
+  } else {
+    handName = 'High Card';
+  }
+
+  return { name: handName, ...HAND_RANKS[handName] };
+}
+
+// ═══════════════════════════════════════════════════════
+//  JOKER DEFINITIONS
+//  Changes 7A: buffed existing jokers
+//  Changes 7B: four new jokers (Alchemist, Forger, Compound Interest, Librarian)
+// ═══════════════════════════════════════════════════════
+const ALL_JOKERS = [
+  // ── Retained (with 7A buffs) ──
+  { id:'road_runner',    tier:'Common',   name:'Road Runner',
+    desc:'+80 chips and +8 mult on Straight or Straight Flush', isMultiplicative:false,
+    apply(r,cards,h,g){ if(h.includes('Straight')){ r.bonusChips+=80; r.multBonus+=8; } } },
+
+  { id:'suited_up',      tier:'Common',   name:'Suited Up',
+    desc:'1.5 times base mult for Flush', isMultiplicative:false,
+    apply(r,cards,h){ if(h==='Flush'||h.includes('Flush')) r.multBonus+=Math.floor(r.baseMult*0.5); } },
+
+  { id:'royal_court',    tier:'Common',   name:'Royal Court',
+    // 7A: +15→+25 chips per face card
+    desc:'+25 chips per face card (J/Q/K/A) played', isMultiplicative:false,
+    apply(r,cards){ r.bonusChips+=cards.filter(c=>['J','Q','K','A'].includes(c.rank)).length*25; } },
+
+  { id:'midas_touch',    tier:'Common',   name:'Midas Touch',
+    // 7A: +5→+8 chips per card
+    desc:'+8 chips per card played (always active)', isMultiplicative:false,
+    apply(r,cards){ r.bonusChips+=cards.length*8; } },
+
+  { id:'quads_champion', tier:'Uncommon', name:'Quads Champion',
+    desc:'+10 mult on Four of a Kind', isMultiplicative:false,
+    apply(r,cards,h){ if(h==='Four of a Kind') r.multBonus+=10; } },
+
+  { id:'trinity',        tier:'Rare',     name:'Trinity',
+    desc:'3 times base mult for Three of a Kind or Full House', isMultiplicative:false,
+    apply(r,cards,h){ if(h==='Three of a Kind'||h==='Full House') r.multBonus+=r.baseMult*2; } },
+
+  { id:'half_joker',     tier:'Uncommon', name:'Half Joker',
+    desc:'+10 mult if hand uses 3 or fewer cards', isMultiplicative:false,
+    apply(r,cards){ if(cards.length<=3) r.multBonus+=10; } },
+
+  // ── Redesigned Common group ──
+  { id:'odd_todd',       tier:'Common',   name:'Odd Todd',
+    desc:'Played A/3/5/7/9 each give +10 chips', isMultiplicative:false,
+    apply(r,cards){ r.bonusChips+=cards.filter(c=>['A','3','5','7','9'].includes(c.rank)).length*10; } },
+
+  { id:'even_steven',    tier:'Common',   name:'Even Steven',
+    desc:'Played 2/4/6/8/10 each give +3 mult', isMultiplicative:false,
+    apply(r,cards){ r.multBonus+=cards.filter(c=>['2','4','6','8','10'].includes(c.rank)).length*3; } },
+
+  { id:'scholar',        tier:'Common',   name:'Scholar',
+    desc:'Played Aces give +20 chips and +4 mult', isMultiplicative:false,
+    apply(r,cards){ const n=cards.filter(c=>c.rank==='A').length; r.bonusChips+=n*20; r.multBonus+=n*4; } },
+
+  { id:'greedy_joker',   tier:'Uncommon', name:'Greedy Joker',
+    desc:'Played ♦ cards each give +4 mult', isMultiplicative:false,
+    apply(r,cards){ r.multBonus+=cards.filter(c=>c.suit==='♦').length*4; } },
+
+  { id:'wrathful_joker', tier:'Uncommon', name:'Wrathful Joker',
+    desc:'Played ♠ cards each give +4 mult', isMultiplicative:false,
+    apply(r,cards){ r.multBonus+=cards.filter(c=>c.suit==='♠').length*4; } },
+
+  { id:'zany_joker',     tier:'Common',   name:'Zany Joker',
+    desc:'+12 mult if hand contains Three of a Kind', isMultiplicative:false,
+    apply(r,cards,h){ if(h==='Three of a Kind'||h==='Full House') r.multBonus+=12; } },
+
+  { id:'crazy_joker',    tier:'Common',   name:'Crazy Joker',
+    desc:'+12 mult if hand contains a Straight', isMultiplicative:false,
+    apply(r,cards,h){ if(h.includes('Straight')) r.multBonus+=12; } },
+
+  { id:'droll_joker',    tier:'Common',   name:'Droll Joker',
+    desc:'+10 mult if hand contains a Flush', isMultiplicative:false,
+    apply(r,cards,h){ if(h.includes('Flush')) r.multBonus+=10; } },
+
+  // ── Uncommon group (with 7A buffs) ──
+  { id:'fibonacci',      tier:'Rare',     name:'Fibonacci',
+    desc:'Played A/2/3/5/8 each give +8 mult', isMultiplicative:false,
+    apply(r,cards){ r.multBonus+=cards.filter(c=>['A','2','3','5','8'].includes(c.rank)).length*8; } },
+
+  { id:'scary_face',     tier:'Uncommon', name:'Scary Face',
+    // 7A: +30 chips AND +1 mult per face card
+    desc:'Played face cards give +30 chips and +1 mult each', isMultiplicative:false,
+    apply(r,cards){ const n=cards.filter(c=>['J','Q','K','A'].includes(c.rank)).length; r.bonusChips+=n*30; r.multBonus+=n; } },
+
+  { id:'mystic_summit',  tier:'Uncommon',   name:'Mystic Summit',
+    desc:'+5 mult when 0 discards remaining', isMultiplicative:false,
+    apply(r,cards,h,g){ if(g&&g.discardsLeft===0) r.multBonus+=5; } },
+
+  { id:'abstract_joker', tier:'Common',   name:'Abstract Joker',
+    desc:'+3 mult for each active Joker slot filled', isMultiplicative:false,
+    apply(r,cards,h,g){ if(g) r.multBonus+=3*g.jokers.length; } },
+
+  { id:'supernova',      tier:'Uncommon', name:'Supernova',
+    desc:'Adds 2× the number of times this hand type was played this run to mult (max +20)', isMultiplicative:false,
+    apply(r,cards,h,g){ if(g) r.multBonus+=Math.min((g._runStats.handTypeCounts[h]||0)*2, 20); } },
+
+  { id:'rough_gem',      tier:'Rare',     name:'Rough Gem',
+    desc:'Each played ♦ permanently adds +1 mult to this joker',
+    isMultiplicative:false, counter:0,
+    apply(r,cards){ const n=cards.filter(c=>c.suit==='♦').length; this.counter+=n; r.multBonus+=this.counter; } },
+
+  { id:'banner',         tier:'Uncommon', name:'Banner',
+    // 7A: +30→+50 chips per discard remaining
+    desc:'+50 chips for each discard remaining', isMultiplicative:false,
+    apply(r,cards,h,g){ if(g) r.bonusChips+=50*g.discardsLeft; } },
+
+  { id:'delayed_grat',   tier:'Common',   name:'Delayed Gratification',
+    desc:'If no discards used this round, gain +1 discard next round', isMultiplicative:false,
+    apply(){} },
+
+  { id:'erosion',        tier:'Rare',     name:'Erosion',
+    desc:'+4 mult for each hand already played this round', isMultiplicative:false,
+    apply(r,cards,h,g){ if(g) r.multBonus+=4*g.handsPlayedThisRound; } },
+
+  { id:'raised_fist',    tier:'Uncommon', name:'Raised Fist',
+    desc:'+3 mult per card held in hand beyond the 5 played (max +9 with 8-card hand)', isMultiplicative:false,
+    apply(r,cards,h,g){
+      if(!g) return;
+      const extra = Math.max(0, g.hand.length - 5);
+      r.multBonus += extra * 3;
+    }},
+
+  // ── Rare / Legendary ──
+  { id:'loyalty_card',   tier:'Rare',     name:'Loyalty Card',
+    desc:'Every 4th hand played grants ×4 mult for that hand', isMultiplicative:true,
+    loyaltyCount:0,
+    apply(r,cards,h,g){
+      if(!g) return;
+      this.loyaltyCount++;
+      if(this.loyaltyCount%4===0) r.baseMult*=4;
+    }},
+
+  { id:'baron',          tier:'Rare',     name:'Baron',
+    desc:'Each King held in hand (not played) gives ×1.5 mult (max 2 triggers)', isMultiplicative:true,
+    apply(r,cards,h,g){
+      if(!g) return;
+      const heldKings = Math.min(2, g.hand.filter(c=>c.rank==='K'&&!cards.includes(c)).length);
+      if(heldKings>0) r.baseMult*=Math.pow(1.5,heldKings);
+    }},
+
+  { id:'wee_joker',      tier:'Rare',     name:'Wee Joker',
+    desc:'Each time you play a Pair hand, permanently +3 chips and +1 mult to this joker',
+    isMultiplicative:false, chips:0, multAcc:0,
+    apply(r,cards,h){ if(h==='Pair'||h==='Two Pair'||h==='Full House'){ this.chips+=3; this.multAcc+=1; } r.bonusChips+=this.chips; r.multBonus+=this.multAcc; } },
+
+  { id:'bloodstone',     tier:'Rare',     name:'Bloodstone',
+    desc:'Played ♥ cards have 1-in-2 chance to give ×1.5 mult', isMultiplicative:true,
+    apply(r,cards,h,g){
+      const rng = g?g.rng:Math.random;
+      cards.filter(c=>c.suit==='♥').forEach(()=>{ if(rng()<0.5) r.baseMult*=1.5; });
+    }},
+
+  { id:'the_duo',        tier:'Rare',     name:'The Duo',
+    desc:'×2 mult if hand is exactly a Pair', isMultiplicative:true,
+    apply(r,cards,h){ if(h==='Pair') r.baseMult*=2; }},
+
+  { id:'oops_all_6s',    tier:'Legendary',name:'Oops! All 6s',
+    desc:'Doubles all mult for one hand — consumed on use', isMultiplicative:true,
+    apply(r,cards,h,g){
+      r.baseMult*=2; r.multBonus*=2;
+      if(g) setTimeout(()=>{ g.jokers=g.jokers.filter(j=>j.id!=='oops_all_6s'); g.renderJokers(); },50);
+    }},
+
+  // ── 7B: Four New Jokers ──
+  { id:'the_alchemist',  tier:'Uncommon', name:'The Alchemist',
+    desc:'Every 30 bonus chips scored this hand also grant +1 mult (applied before multiplicative jokers)',
+    isMultiplicative:false,
+    apply(r,cards,h,g){ r.multBonus += Math.floor(r.bonusChips / 30); } },
+
+
+
+// v5: new jokers
+  { id:'the_accountant', tier:'Common',   name:'The Accountant',
+    desc:'Earn +1 extra gold each time you clear a round',
+    isMultiplicative:false, apply(){} },
+
+  { id:'the_opportunist', tier:'Uncommon', name:'The Opportunist',
+    desc:'If you beat the round target on your very first hand, +15 mult',
+    isMultiplicative:false,
+    apply(r,cards,h,g){ if(g && g.handsPlayedThisRound===0) r.multBonus+=15; } },
+
+  { id:'the_contrarian',  tier:'Uncommon', name:'The Contrarian',
+    desc:'If the played hand has base chips of 20 or below (High Card, Pair, Two Pair), +10 mult',
+    isMultiplicative:false,
+    apply(r,cards,h){ if(r.baseChips<=20) r.multBonus+=10; } },
+
+  { id:'glass_cannon',   tier:'Rare',     name:'Glass Cannon',
+    noShop:true,
+    desc:'x3 mult this hand, but your hand size is permanently reduced to 3 cards',
+    isMultiplicative:true,
+    apply(r,cards,h,g){
+      r.baseMult*=3;
+      if(g && g.handSize>3){ g.handSize=3; if(g.hand.length>3) g.hand=g.hand.slice(0,3); }
+    } },
+];
+
+// ═══════════════════════════════════════════════════════
+//  JOKER POOL HELPER
+//  Change 8: accepts deckType to filter face-card jokers for Commoner's Deck
+// ═══════════════════════════════════════════════════════
+const COMMONERS_FACE_JOKERS = ['royal_court','scary_face','baron','half_joker'];
+
+function getRandomJokers(existing, count, rng, allowLegendary=false, deckType='', fromShop=false) {
+  rng = rng || Math.random.bind(Math);
+  const existingIds = existing.map(j=>j.id);
+  let pool = ALL_JOKERS.filter(j=>!existingIds.includes(j.id));
+  if(!allowLegendary) pool = pool.filter(j=>j.tier!=='Legendary');
+  if(fromShop) pool = pool.filter(j=>!j.noShop); // v5: Glass Cannon never in shop
+  // Change 8: filter out face-card jokers for Commoner's Deck
+  if(deckType==='no_faces') pool = pool.filter(j=>!COMMONERS_FACE_JOKERS.includes(j.id));
+  const weighted = [];
+  pool.forEach(j=>{ const w=TIER_WEIGHTS[j.tier]||1; for(let i=0;i<w;i++) weighted.push(j); });
+  const result=[]; const seen=new Set();
+  let attempts=0;
+  while(result.length<count && seen.size<pool.length && attempts<300) {
+    attempts++;
+    const pick=weighted[Math.floor(rng()*weighted.length)];
+    if(!seen.has(pick.id)){seen.add(pick.id);result.push(pick);}
+  }
+  return result;
+}
+
+// ═══════════════════════════════════════════════════════
+//  CONSUMABLE DEFINITIONS
+// ═══════════════════════════════════════════════════════
+const ALL_CONSUMABLES = [
+  { id:'the_fool',     name:'The Fool',     cost:3, requiresTargetCards:false, maxTargets:0, desc:'Add 1 extra discard this round',
+    apply(game){ game.discardsLeft+=1; game.render(); } },
+  { id:'the_hermit',   name:'The Hermit',   cost:4, requiresTargetCards:false, maxTargets:0, desc:'Double current gold (max +6g)',
+    apply(game){ game.gold=Math.min(game.gold*2, game.gold+6); game.render(); } },
+  { id:'the_tower',    name:'The Tower',    cost:3, requiresTargetCards:false, maxTargets:0, desc:'Shuffle hand and redraw from deck',
+    apply(game){ game.hand=game.deck.draw(game.handSize); game.selected=[]; game.render(); } },
+  { id:'the_star',     name:'The Star',     cost:4, requiresTargetCards:true,  maxTargets:3, desc:'Change up to 3 cards to ♦ permanently',
+    apply(game,sel){ sel.forEach(c=>c.suit='♦'); game.render(); } },
+  { id:'the_moon',     name:'The Moon',     cost:4, requiresTargetCards:true,  maxTargets:3, desc:'Change up to 3 cards to ♣ permanently',
+    apply(game,sel){ sel.forEach(c=>c.suit='♣'); game.render(); } },
+  { id:'the_sun',      name:'The Sun',      cost:4, requiresTargetCards:true,  maxTargets:3, desc:'Change up to 3 cards to ♥ permanently',
+    apply(game,sel){ sel.forEach(c=>c.suit='♥'); game.render(); } },
+  { id:'the_world',    name:'The World',    cost:5, requiresTargetCards:false, maxTargets:0, desc:'Next hand scores as Straight Flush',
+    apply(game){ game.worldActiveThisHand=true; } },
+  { id:'hanged_man',   name:'The Hanged Man',cost:3,requiresTargetCards:true,  maxTargets:2, desc:'Permanently remove up to 2 cards from deck',
+    apply(game,sel){ sel.forEach(c=>{ c.enhancements.add('removed'); game.hand=game.hand.filter(h=>h!==c); }); game.render(); } },
+  { id:'judgement',    name:'Judgement',    cost:5, requiresTargetCards:false, maxTargets:0, desc:'Add a random Joker to active slots',
+    apply(game){ const j=getRandomJokers(game.jokers,1,game.rng,'',game.deckType)[0]; if(!j)return; if(game.jokers.length>=game.maxJokers){game.pendingJoker=j;game._showJokerReplacePhase2();}else{game.jokers.push(j);game.renderJokers();} } },
+];
+
+function getRandomConsumables(count, rng) {
+  rng = rng || Math.random.bind(Math);
+  const shuffled = [...ALL_CONSUMABLES].sort(()=>rng()-0.5);
+  return shuffled.slice(0, count);
+}
+
+// ═══════════════════════════════════════════════════════
+//  RUN MODIFIER DEFINITIONS
+// ═══════════════════════════════════════════════════════
+const ALL_MODIFIERS = [
+  { id:'extra_round',    name:'Extra Round',    cost:3, availableFromRound:1, desc:'+1 hand to every remaining round',
+    onPurchase(g){} },
+  { id:'safety_net',     name:'Safety Net',     cost:4, availableFromRound:1, desc:'Survive one game over — round skipped',
+    onPurchase(g){ g.safetyNetActive=true; } },
+  { id:'sharp_eye',      name:'Sharp Eye',      cost:3, availableFromRound:1, desc:'Projected score also highlights best possible hand',
+    onPurchase(g){} },
+  { id:'deck_refresh',   name:'Deck Refresh',   cost:3, availableFromRound:1, desc:'Deck fully resets at start of every remaining round',
+    onPurchase(g){} },
+  { id:'lucky_streak',   name:'Lucky Streak',   cost:4, availableFromRound:1, desc:'1-in-5 chance each hand gets ×1.5 mult (3 rounds)',
+    onPurchase(g){ this.roundsLeft=3; } },
+  { id:'gold_fever',     name:'Gold Fever',     cost:3, availableFromRound:1, desc:'+1 gold per round clear for rest of run',
+    onPurchase(g){} },
+];
+
+function getRandomModifier(round, purchased, rng) {
+  rng = rng || Math.random.bind(Math);
+  const pIds = purchased.map(m=>m.id);
+  const available = ALL_MODIFIERS.filter(m=>!pIds.includes(m.id)&&round>=(m.availableFromRound||1));
+  if(!available.length) return null;
+  return available[Math.floor(rng()*available.length)];
+}
+
+// ═══════════════════════════════════════════════════════
+//  META-PROGRESSION HELPERS
+// ═══════════════════════════════════════════════════════
+function getUnlocks() {
+  try { return JSON.parse(localStorage.getItem('jg_unlocks')||'{}'); } catch{ return {}; }
+}
+function saveUnlocks(u) { localStorage.setItem('jg_unlocks', JSON.stringify(u)); }
+
+function checkMilestones(game) {
+  const u = getUnlocks();
+  const notes = [];
+  if(game.round>=3 && !u.round3){ u.round3=true; notes.push('⚡ Speed Deck unlocked!'); }
+  if(game.round>=5 && !u.round5){ u.round5=true; notes.push('🃏 Loyalty Card joker unlocked!'); }
+  if(game.round>=7 && !u.round7){ u.round7=true; notes.push('🌀 New milestone reached!'); }
+  saveUnlocks(u);
+  game._pendingMilestones = notes;
+}
+
+function logRunHistory(game, won) {
+  try {
+    const entry = { round:game.round, score:game.score, deck:game.deckType, jokers:game.jokers.map(j=>j.name), won, date:new Date().toLocaleDateString() };
+    const hist = JSON.parse(localStorage.getItem('jg_history')||'[]');
+    hist.unshift(entry);
+    if(hist.length>10) hist.pop();
+    localStorage.setItem('jg_history', JSON.stringify(hist));
+    const hof = JSON.parse(localStorage.getItem('jg_hof')||'[]');
+    hof.push(entry);
+    hof.sort((a,b)=>b.round-a.round||b.score-a.score);
+    hof.splice(3);
+    localStorage.setItem('jg_hof', JSON.stringify(hof));
+  } catch(e){}
+}
+
+// ═══════════════════════════════════════════════════════
+//  GAME CLASS
+// ═══════════════════════════════════════════════════════
+class Game {
+  constructor() {
+    // Core state
+    this.deckType = null;
+    this.deck = null;
+    this.hand = [];
+    this.selected = [];
+    this.jokers = [];
+    this.score = 0;
+    this.round = 1;
+    this.handsLeft = 4;
+    this.discardsLeft = 3;
+    this.targetScore = ROUND_TARGETS[0];
+    this.highScore = parseInt(localStorage.getItem('jg_hs')||'0');
+    this.pendingJoker = null;
+    this.maxJokers = 3;
+
+    // Resources
+    this.gold = 0;
+    this.consumables = [];
+    this.modifiers = [];
+    this.carryOverScore = 0;
+    this.safetyNetActive = false;
+    this.worldActiveThisHand = false;
+    this.legendaryOfferedThisRun = false;
+    this.handSize = 8;
+
+    // Daily mode
+    this.dailySeed = null;
+    this.dailyMode = false;
+    this.rng = Math.random.bind(Math);
+
+    // Round tracking
+    this.handsPlayedThisRound = 0;
+    this.discardsUsedThisRound = 0;
+    this.startHandsLeft = 4;
+    this.foilUsedThisRound = false;
+
+    // Change 3: event system removed — these fields no longer used
+    // (kept as stubs so no runtime errors if anything references them)
+    this.activeEvent = null;
+
+    // Change 7B: Compound Interest state
+    this._compoundChips = 0;
+
+    // Change 7B: Librarian state
+    this._roundHandTypes = new Set();
+
+    // Change 8: deck passive mult bonus
+    this._deckBaseMultBonus = 0;
+
+    // Change 2: per-run stats tracking
+    this._runStats = {
+      handsPlayed: 0,
+      discardsUsed: 0,
+      bestHandName: '',
+      bestHandScore: 0,
+      bestRoundScore: 0,
+      handTypeCounts: {},
+      goldEarned: 0,
+      goldSpent: 0,
+    };
+
+    this._pendingMilestones = [];
+
+    // Change 1: consumable overlay state
+    this._pendingConsumableIdx = null;
+    this._consumableTargets = [];
+
+    // Enhancement select state (shop enhance lane)
+    this._enhanceSelectMode = null;
+    this._shopOpen = false;
+
+    // v5: Gambit mechanic
+    this._gambittUsed = false;
+    this._gambittDeclared = false;
+
+    // Change 5: hints tracking
+    this._hintsShown = {};
+    try { this._hintsShown = JSON.parse(localStorage.getItem('jg_hints_seen')||'{}'); } catch(e){}
+
+    // Audio
+    this.audioCtx = null;
+    this.muted = localStorage.getItem('jg_mute') === 'true';
+    document.getElementById('btn-mute').textContent = this.muted ? '🔇' : '🔊';
+    document.addEventListener('click', ()=>{ if(!this.audioCtx) this.audioCtx=new(window.AudioContext||window.webkitAudioContext)(); }, {once:true});
+
+    window._game = this;
+    this.bindUI();
+    this.showDeckSelect();
+  }
+
+  // ── Audio ──────────────────────────────────
+  playTone(freq, type, duration, gainPeak, delay=0) {
+    if(!this.audioCtx||this.muted) return;
+    try {
+      const osc=this.audioCtx.createOscillator();
+      const gain=this.audioCtx.createGain();
+      osc.connect(gain); gain.connect(this.audioCtx.destination);
+      osc.type=type; osc.frequency.value=freq;
+      const t=this.audioCtx.currentTime+delay/1000;
+      gain.gain.setValueAtTime(0,t);
+      gain.gain.linearRampToValueAtTime(gainPeak,t+0.005);
+      gain.gain.linearRampToValueAtTime(0,t+duration/1000);
+      osc.start(t); osc.stop(t+duration/1000+0.01);
+    } catch(e){}
+  }
+
+  playSound(event) {
+    const d=(f,t,ms,g,delay=0)=>this.playTone(f,t,ms,g,delay);
+    switch(event) {
+      case 'select':      d(400,'sine',80,0.18); d(600,'sine',80,0.18,40); break;
+      case 'deselect':    d(600,'sine',80,0.18); d(400,'sine',80,0.18,40); break;
+      case 'play_weak':   d(200,'triangle',200,0.28); [261,329,392].forEach((f,i)=>d(f,'sine',100,0.13,i*60)); break;
+      case 'play_strong': [261,330,392,523,659].forEach((f,i)=>d(f,'sine',100,0.18,i*80)); break;
+      case 'round_win':   [261,329,392].forEach((f,i)=>d(f,'sine',300,0.22,i*150)); break;
+      case 'joker_fire':  d(800,'sine',60,0.13); d(1200,'sine',60,0.13,60); break;
+      case 'shop_open':   [523,440,349,261].forEach((f,i)=>d(f,'triangle',80,0.18,i*80)); break;
+      case 'gameover':
+        try {
+          if(!this.audioCtx||this.muted) break;
+          const osc=this.audioCtx.createOscillator(); const g2=this.audioCtx.createGain();
+          osc.connect(g2); g2.connect(this.audioCtx.destination);
+          osc.type='sawtooth';
+          osc.frequency.setValueAtTime(300,this.audioCtx.currentTime);
+          osc.frequency.linearRampToValueAtTime(100,this.audioCtx.currentTime+0.6);
+          g2.gain.setValueAtTime(0.28,this.audioCtx.currentTime);
+          g2.gain.linearRampToValueAtTime(0,this.audioCtx.currentTime+0.6);
+          osc.start(); osc.stop(this.audioCtx.currentTime+0.65);
+        } catch(e){}
+        break;
+    }
+  }
+
+  toggleMute() {
+    this.muted=!this.muted;
+    localStorage.setItem('jg_mute',this.muted);
+    document.getElementById('btn-mute').textContent=this.muted?'🔇':'🔊';
+  }
+
+  // ── Change 5 Tier 1: Contextual Hints ──────
+  showHint(key, message, targetElementId='hand-result', duration=5000) {
+    if (this._hintsShown[key]) return;
+    this._hintsShown[key] = true;
+    localStorage.setItem('jg_hints_seen', JSON.stringify(this._hintsShown));
+    const el = document.getElementById(targetElementId);
+    if (!el) return;
+    const prev = el.textContent;
+    const prevColor = el.style.color;
+    el.textContent = message;
+    el.style.color = '#86efac';
+    setTimeout(() => {
+      el.textContent = prev;
+      el.style.color = prevColor;
+    }, duration);
+  }
+
+  // ── Deck Selection ──────────────────────────
+  showDeckSelect() {
+    const unlocks = getUnlocks();
+    const container = document.getElementById('deck-choices');
+    container.innerHTML = '';
+    DECK_TYPES.forEach(dt => {
+      const locked = dt.unlockKey && !unlocks[dt.unlockKey];
+      const div = document.createElement('div');
+      div.className = 'deck-choice' + (locked ? ' locked' : '');
+      div.innerHTML = `
+        <div class="deck-choice-icon">${dt.icon}</div>
+        <div class="deck-choice-name">${dt.name}</div>
+        <div class="deck-choice-desc">${dt.desc}</div>
+        <div class="deck-synergy">Pairs with: ${dt.synergy.join(', ')}</div>
+        ${locked?`<div class="deck-unlock-label">🔒 ${dt.unlockKey==='round3'?'Reach Round 3':'Unlock required'}</div>`:''}`;
+      if(!locked) {
+        div.addEventListener('click', () => {
+          this.deckType = dt.id;
+          document.getElementById('overlay-deck-select').classList.add('hidden');
+          this.deck = new Deck(this.deckType, this.rng.bind(this));
+          this.startRound();
+        });
+      }
+      container.appendChild(div);
+    });
+    this._renderHOF();
+    const dailyBtn = document.getElementById('btn-daily');
+    const u = getUnlocks();
+    if(u.wonRun) dailyBtn.style.display='';
+    dailyBtn.onclick = () => this.startDailyRun();
+    document.getElementById('overlay-deck-select').classList.remove('hidden');
+  }
+
+  _renderHOF() {
+    try {
+      const hof = JSON.parse(localStorage.getItem('jg_hof')||'[]');
+      const el = document.getElementById('hall-of-fame');
+      if(!hof.length){ el.innerHTML=''; return; }
+      el.innerHTML = '<p style="font-size:0.72rem;color:#9ca3af;margin-bottom:6px;">🏆 Hall of Fame</p>' +
+        hof.map((e,i)=>`<div class="hof-entry">
+          <span>${['🥇','🥈','🥉'][i]} Rd ${e.round} — ${e.deck||'?'}</span>
+          <span style="color:#7fff7f">${e.score.toLocaleString()} pts</span>
+          <span style="color:#c084fc;font-size:0.68rem">${(e.jokers||[]).slice(0,2).join(', ')}</span>
+        </div>`).join('');
+    } catch(e){}
+  }
+
+  startDailyRun() {
+    const today = new Date().toISOString().slice(0,10).replace(/-/g,'');
+    const seed = parseInt(today);
+    const resultKey = 'jg_daily_'+today;
+    const saved = localStorage.getItem(resultKey);
+    if(saved) {
+      const r = JSON.parse(saved);
+      alert(`Today's Daily Gambit already played!\nResult: Round ${r.round} — ${r.score} pts — ${r.won?'WIN 🏆':'Loss 💀'}`);
+      return;
+    }
+    this.dailyMode = true;
+    this.dailySeed = seed;
+    this.rng = mulberry32(seed);
+    const deckOpts = ['standard','short_deck','mirrored','no_faces','ghost'];
+    this.deckType = deckOpts[seed % deckOpts.length];
+    document.getElementById('overlay-deck-select').classList.add('hidden');
+    this.deck = new Deck(this.deckType, this.rng.bind(this));
+    this.startRound();
+  }
+
+  // ── Round Management ────────────────────────
+  startRound() {
+    const cfg = ROUND_CONFIG[this.round-1];
+    this.score = this.carryOverScore;
+    this.carryOverScore = 0;
+
+    // Resources
+    this.handsLeft = cfg.hands;
+    this.discardsLeft = cfg.discards;
+    if(this.modifiers.find(m=>m.id==='extra_round')) this.handsLeft+=1;
+    if(this.deckType==='speed') this.handsLeft+=1;
+    if(this.modifiers.find(m=>m.id==='deck_refresh')) this.deck.reset();
+
+    // Reset round-tracking state
+    this.handSize = cfg.handSize || 8; // v5: from ROUND_CONFIG
+    this.foilUsedThisRound = false;
+    this.handsPlayedThisRound = 0;
+    this.discardsUsedThisRound = 0;
+    this.startHandsLeft = this.handsLeft;
+    this.worldActiveThisHand = false;
+
+    // Change 7B: reset per-round joker state
+    this._compoundChips = 0;
+    this._roundHandTypes = new Set();
+
+    // Change 8: apply Commoner's Deck passive mult bonus
+    this._deckBaseMultBonus = (this.deckType === 'no_faces') ? 2 : 0;
+
+    // Change 3: no events — hide banner
+    document.getElementById('event-banner') && (document.getElementById('event-banner').style.display='none');
+
+    // Lucky Streak countdown
+    const ls = this.modifiers.find(m=>m.id==='lucky_streak');
+    if(ls && ls.roundsLeft !== undefined && ls.roundsLeft <= 0) {
+      this.modifiers = this.modifiers.filter(m=>m.id!=='lucky_streak');
+    }
+
+    // Draw hand
+    this.hand = this.deck.draw(this.handSize);
+    this.selected = [];
+    this.render();
+    this.setResult(`Round ${this.round} — Target: ${this.targetScore.toLocaleString()} pts`);
+    this.setLog('');
+    this._hideBreakdown();
+    this.updateProjectedScore();
+
+    // Change 5: Tier 1 contextual hints
+    if(this.round===1) {
+      setTimeout(()=>this.showHint('round1_start',
+        '💡 Select up to 5 cards and click Play Hand. Score = (Chips + Card Values) × Mult.'), 800);
+    }
+    if(this.round===3) {
+      setTimeout(()=>this.showHint('round3_postshop',
+        '💡 Post-shop round! You just powered up — use your new jokers aggressively.'), 800);
+    }
+  }
+
+  advanceRound() {
+    // Change 3: no event revert needed
+    this.round++;
+    if(this.round>10) return;
+    this.targetScore = ROUND_TARGETS[this.round-1];
+    // Speed deck target scaling
+    if(this.deckType==='speed') this.targetScore=Math.floor(this.targetScore*Math.pow(1.1,this.round-1));
+    // Short deck target scaling
+    if(this.deckType==='short_deck') this.targetScore=Math.floor(this.targetScore*Math.pow(1.05,this.round-1));
+    // Recreate deck unless Deck Refresh
+    if(!this.modifiers.find(m=>m.id==='deck_refresh')) this.deck=new Deck(this.deckType, this.rng.bind(this));
+    // Delayed Gratification: grant extra discard if none used
+    if(this.jokers.find(j=>j.id==='delayed_grat') && this.discardsUsedThisRound===0) {
+      this.discardsLeft = (ROUND_CONFIG[this.round-1]||{discards:3}).discards + 1;
+    }
+    this.startRound();
+  }
+
+  restart() {
+    if(this.dailyMode) this._saveDailyResult();
+    // Reset all state
+    this.round=1; this.jokers=[]; this.targetScore=ROUND_TARGETS[0]; this.pendingJoker=null;
+    this.deckType=null; this.gold=0; this.consumables=[]; this.modifiers=[];
+    this.activeEvent=null; this.carryOverScore=0;
+    this.safetyNetActive=false; this.maxJokers=3; this.legendaryOfferedThisRun=false;
+    this.dailyMode=false; this.dailySeed=null; this.rng=Math.random.bind(Math);
+    this._compoundChips=0; this._roundHandTypes=new Set();
+    this._deckBaseMultBonus=0;
+    // Change 2: reset run stats
+    this._runStats = { handsPlayed:0, discardsUsed:0, bestHandName:'', bestHandScore:0, bestRoundScore:0, handTypeCounts:{}, goldEarned:0, goldSpent:0 };
+    this._pendingMilestones=[];
+    this._pendingConsumableIdx=null; this._consumableTargets=[];
+    this._enhanceSelectMode=null; this._shopOpen=false;
+    this._gambittUsed=false; this._gambittDeclared=false;
+
+    ['overlay-gameover','overlay-victory','overlay-joker','overlay-shop','overlay-history',
+     'overlay-consumable-target','overlay-joker-buy-confirm'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el) el.classList.add('hidden');
+    });
+    this.showDeckSelect();
+  }
+
+  _saveDailyResult() {
+    if(!this.dailyMode) return;
+    const today=new Date().toISOString().slice(0,10).replace(/-/g,'');
+    localStorage.setItem('jg_daily_'+today, JSON.stringify({round:this.round,score:this.score,won:this.score>=this.targetScore}));
+  }
+
+  // ── Scoring ─────────────────────────────────
+  getScoringCards(cards, handName) {
+    // v5: only cards that form the hand pattern contribute chip value
+    if(!cards.length) return [];
+    const nonGhost = cards.filter(c => !c.isGhost);
+    if(['Straight','Flush','Full House','Straight Flush','Royal Flush'].includes(handName)) return cards;
+    if(handName === 'High Card') {
+      const top = [...nonGhost].sort((a,b) => b.numRank - a.numRank)[0];
+      return top ? [top] : [];
+    }
+    const freq = {};
+    for(const c of nonGhost) freq[c.numRank] = (freq[c.numRank]||0) + 1;
+    if(handName === 'Two Pair') {
+      const pairRanks = Object.entries(freq).filter(([,v])=>v>=2).map(([k])=>parseInt(k));
+      return nonGhost.filter(c => pairRanks.includes(c.numRank));
+    }
+    const maxCount = Math.max(...Object.values(freq));
+    const targetRank = Object.entries(freq).filter(([,v])=>v===maxCount)
+      .map(([k])=>parseInt(k)).sort((a,b)=>b-a)[0];
+    return nonGhost.filter(c => c.numRank === targetRank);
+  }
+
+  calculateScore(cards) {
+    let eval_ = evaluateHand(cards);
+    // The World consumable override
+    if(this.worldActiveThisHand) {
+      eval_ = { name:'Straight Flush', base:100, mult:8 };
+      this.worldActiveThisHand = false;
+    }
+    const scoringCards = this.getScoringCards(cards, eval_.name); // v5: chip value from scoring cards only
+    const cardValueSum = scoringCards.reduce((s,c)=>s+c.value,0);
+    const result = {
+      handName: eval_.name,
+      baseChips: eval_.base,
+      // Change 8: apply Commoner's Deck passive +2 mult
+      baseMult: eval_.mult + this._deckBaseMultBonus,
+      bonusChips: 0,
+      multBonus: 0,
+    };
+
+    // Enhancement pass
+    for(const card of cards) {
+      if(card.enhancements.has('gilded')) result.bonusChips+=10;
+      if(card.enhancements.has('foil')&&!this.foilUsedThisRound){ result.multBonus+=4; this.foilUsedThisRound=true; }
+    }
+
+    // Pass 1: additive jokers (run in order — The Alchemist fires last in this pass
+    // because it reads bonusChips accumulated by all previous chip jokers)
+    const additiveFirst = this.jokers.filter(j=>!j.isMultiplicative && j.id!=='the_alchemist');
+    const alchemist    = this.jokers.filter(j=>j.id==='the_alchemist');
+    for(const j of [...additiveFirst, ...alchemist]) {
+      const beforeChips = result.bonusChips;
+      const beforeMult  = result.multBonus;
+      j.apply(result, scoringCards, eval_.name, this); // v5: scoringCards
+      j._lastContrib = (result.bonusChips - beforeChips) + (result.multBonus - beforeMult);
+    }
+
+    // Pass 2: multiplicative jokers
+    for(const j of this.jokers.filter(j=>j.isMultiplicative)) {
+      const bm = result.baseMult;
+      j.apply(result, scoringCards, eval_.name, this); // v5: scoringCards
+      j._lastContrib = result.baseMult - bm;
+    }
+
+    const totalChips = result.baseChips + cardValueSum + result.bonusChips;
+    const totalMult  = result.baseMult  + result.multBonus;
+    const total      = Math.floor(totalChips * totalMult);
+    return { ...result, totalChips, totalMult, total, cardValueSum };
+  }
+
+  calculateRoundGold() {
+    // v5: tighter gold — forces real trade-off decisions
+    const cfg = ROUND_CONFIG[this.round-1];
+    if(cfg.baseGold===0) return 0;
+    let gold = cfg.baseGold;
+    // Efficiency bonus removed; surplus bonus max +1g above 300pt surplus
+    const surplus = this.score - this.targetScore;
+    if(surplus >= 300) gold += 1;
+    if(this.modifiers.find(m=>m.id==='gold_fever')) gold+=1;
+    return Math.max(0, gold);
+  }
+
+  // ── Actions ─────────────────────────────────
+  playHand() {
+    if(this.selected.length===0){ this.setResult('Select at least 1 card to play!'); return; }
+    if(this.handsLeft<=0) return;
+
+    const playedCards = this.selected.slice();
+    const sc = this.calculateScore(playedCards);
+
+    // Update _runStats hand type counts BEFORE Supernova/Forger check
+    this._runStats.handTypeCounts[sc.handName] = (this._runStats.handTypeCounts[sc.handName]||0)+1;
+
+    let total = sc.total;
+
+    // Lucky Streak modifier
+    const ls = this.modifiers.find(m=>m.id==='lucky_streak');
+    if(ls && (ls.roundsLeft===undefined||ls.roundsLeft>0) && this.rng()<0.2) {
+      total = Math.floor(total*1.5);
+      this.setResult('✨ Lucky Streak! 1.5× bonus!');
+    }
+
+    playedCards.forEach(card=>{
+      const el=document.querySelector(`[data-id="${card.id}"]`);
+      if(el) el.classList.add('played');
+    });
+
+    setTimeout(()=>{
+      this.score += total;
+
+      // v5: Gambit resolution
+      if(this._gambittDeclared) {
+        this._gambittDeclared = false;
+        const threshold = Math.floor(this.targetScore * 1.5);
+        if(total >= threshold) {
+          this.score = threshold;
+          this.setResult(`🎲 GAMBIT SUCCESS! ${total.toLocaleString()} pts — round skipped!`);
+          this.render();
+          setTimeout(()=>this.handleRoundWin(), 1200);
+          return;
+        } else {
+          const weakest = this._getWeakestJoker();
+          if(weakest) {
+            this.jokers = this.jokers.filter(j=>j!==weakest);
+            this.renderJokers();
+            this.setResult(`🎲 Gambit failed! ${weakest.name} was lost. Round continues.`);
+          } else {
+            this.setResult('🎲 Gambit failed! Round continues.');
+          }
+        }
+      }
+
+      this.handsLeft--;
+      this.handsPlayedThisRound++;
+
+      // Change 2: track run stats
+      this._runStats.handsPlayed++;
+      if(total > this._runStats.bestHandScore){
+        this._runStats.bestHandScore = total;
+        this._runStats.bestHandName  = sc.handName;
+      }
+      if(this.score > this._runStats.bestRoundScore)
+        this._runStats.bestRoundScore = this.score;
+
+      this.hand = this.hand.filter(c=>!playedCards.includes(c));
+      const needed = this.handSize - this.hand.length;
+      if(needed>0) this.hand.push(...this.deck.draw(needed));
+      this.selected = [];
+
+      this.setResult(`${sc.handName}!`);
+      this.setLog(`${sc.totalChips} chips × ${sc.totalMult.toFixed(1)} = +${total} pts`);
+      this._showBreakdown(sc, total);
+
+      // Joker pulses
+      const firingJokers = this.jokers.filter(j=>j._lastContrib&&j._lastContrib>0);
+      firingJokers.forEach((j,i)=>{
+        const el=document.getElementById('joker-'+j.id);
+        if(!el) return;
+        setTimeout(()=>{ el.classList.add('joker-pulse'); this.playSound('joker_fire'); setTimeout(()=>el.classList.remove('joker-pulse'),400); }, i*110);
+      });
+
+      this.playSound(total>=300?'play_strong':'play_weak');
+
+      if(this.score>=this.targetScore) {
+        this.handleRoundWin();
+      } else if(this.handsLeft<=0) {
+        this.handleRoundLoss();
+      }
+
+      this.render();
+      this.updateProjectedScore();
+
+      // Change 5: last-hand urgency hint
+      if(this.handsLeft===1 && this.score<this.targetScore){
+        this.showHint('last_hand_urgent',
+          '🚨 Last hand! Play your highest-scoring combination — check the preview panel above.');
+      }
+    }, 450);
+  }
+
+  handleRoundWin() {
+    const earned = this.calculateRoundGold();
+    this.gold += earned;
+    this._runStats.goldEarned += earned;
+    this.carryOverScore = Math.floor((this.score - this.targetScore)*0.05); // v5: 15%→5%
+    // The Accountant: +1 gold on round clear
+    if(this.jokers.find(j=>j.id==='the_accountant')){ this.gold+=1; this._runStats.goldEarned+=1; }
+    if(this.round > this.highScore){ this.highScore=this.round; localStorage.setItem('jg_hs',this.highScore); }
+
+    const ls=this.modifiers.find(m=>m.id==='lucky_streak');
+    if(ls&&ls.roundsLeft!==undefined) ls.roundsLeft--;
+
+    checkMilestones(this);
+    this._showMilestones();
+    this.playSound('round_win');
+
+    let msg = `🎉 Round ${this.round} complete! +${earned}g earned.`;
+    if(this.carryOverScore>0) msg += ` (${this.carryOverScore} pts carry-over)`;
+    this.setResult(msg);
+
+    if(this.round>=10) {
+      logRunHistory(this,true);
+      const u=getUnlocks(); u.wonRun=true;
+      if(!u.decksWon) u.decksWon=[];
+      if(!u.decksWon.includes(this.deckType)) u.decksWon.push(this.deckType);
+      if(u.decksWon.length>=3) u.dailyMode=true;
+      saveUnlocks(u);
+      if(this.dailyMode) this._saveDailyResult();
+      setTimeout(()=>this.showVictory(),1200);
+    } else if(SHOP_ROUNDS.includes(this.round)) {
+      setTimeout(()=>this.showShop(),1200);
+    } else {
+      setTimeout(()=>this.showJokerPick(),1200);
+    }
+  }
+
+  declareGambit() {
+    if(this._gambittUsed) { this.setResult('The Gambit has already been used this run!'); return; }
+    if(this.jokers.length===0) { this.setResult('You need at least one joker to declare The Gambit.'); return; }
+    if(this._gambittDeclared) {
+      this._gambittDeclared=false; this._gambittUsed=false;
+      document.getElementById('btn-gambit').classList.remove('declared');
+      this.setResult('Gambit cancelled.');
+      this.updateButtons(); return;
+    }
+    this._gambittDeclared=true; this._gambittUsed=true;
+    document.getElementById('btn-gambit').classList.add('declared');
+    const threshold = Math.floor(this.targetScore*1.5);
+    this.setResult(`🎲 GAMBIT DECLARED! Hit ${threshold.toLocaleString()} pts in one hand to skip the round. Fail = lose your weakest joker.`);
+    this.updateButtons();
+  }
+
+  _getWeakestJoker() {
+    if(!this.jokers.length) return null;
+    const order = {Common:0, Uncommon:1, Rare:2, Legendary:3};
+    return [...this.jokers].sort((a,b)=>(order[a.tier]||0)-(order[b.tier]||0))[0];
+  }
+
+  handleRoundLoss() {
+    if(this.safetyNetActive){
+      this.safetyNetActive=false;
+      this.setResult('🛡 Safety Net activated — round skipped!');
+      logRunHistory(this,false);
+      setTimeout(()=>this.advanceRound(),1400);
+      return;
+    }
+    if(this.round>this.highScore){ this.highScore=this.round; localStorage.setItem('jg_hs',this.highScore); }
+    logRunHistory(this,false);
+    if(this.dailyMode) this._saveDailyResult();
+    this.playSound('gameover');
+    setTimeout(()=>this.showGameOver(),700);
+  }
+
+  discard() {
+    if(this.discardsLeft<=0||this.selected.length===0) return;
+    this.hand = this.hand.filter(c=>!this.selected.includes(c));
+    const needed = this.handSize - this.hand.length;
+    if(needed>0) this.hand.push(...this.deck.draw(needed));
+    this.selected = [];
+    this.discardsLeft--;
+    this.discardsUsedThisRound++;
+
+    // Change 2: track discards used
+    this._runStats.discardsUsed++;
+
+    this.setResult('Discarded — new cards drawn.');
+    this.setLog('');
+    this._hideBreakdown();
+    this.render();
+    this.updateProjectedScore();
+
+    // Change 5: hint on first discard
+    this.showHint('first_discard',
+      '💡 Discards help you chase better hands. Save them for when your hand is close but not quite there.');
+  }
+
+  toggleSelect(card) {
+    const idx = this.selected.indexOf(card);
+    if(idx>=0) { this.selected.splice(idx,1); this.playSound('deselect'); }
+    else if(this.selected.length<5) { this.selected.push(card); this.playSound('select'); }
+    this.renderHandOnly();
+    this.updateButtons();
+    this.updateProjectedScore();
+  }
+
+  // ── Change 1: Consumable Overlay ────────────
+  useConsumable(idx) {
+    const c = this.consumables[idx];
+    if(!c) return;
+    if(c.requiresTargetCards) {
+      this._pendingConsumableIdx = idx;
+      this._consumableTargets = [];
+      this._showConsumableOverlay(c);
+    } else {
+      c.apply(this, []);
+      this.consumables.splice(idx, 1);
+      this.renderConsumables();
+      this.updateProjectedScore();
+    }
+  }
+
+  _showConsumableOverlay(c) {
+    document.getElementById('cons-overlay-title').textContent = '🌟 ' + c.name;
+    document.getElementById('cons-overlay-desc').textContent  = c.desc;
+    this._updateConsTargetHint(c);
+    this._renderConsTargetHand(c);
+    document.getElementById('overlay-consumable-target').classList.remove('hidden');
+  }
+
+  _updateConsTargetHint(c) {
+    const sel = this._consumableTargets.length;
+    const max = c.maxTargets;
+    document.getElementById('cons-overlay-hint').textContent =
+      `Select up to ${max} card${max>1?'s':''} — ${sel} selected`;
+  }
+
+  _renderConsTargetHand(c) {
+    const container = document.getElementById('cons-target-hand');
+    container.innerHTML = '';
+    this.hand.forEach(card => {
+      const el = document.createElement('div');
+      const isSelected = this._consumableTargets.includes(card);
+      let cls = `card ${card.colorClass}${isSelected?' selected':''}`;
+      if(card.isGhost) cls+=' card-ghost';
+      if(card.enhancements.has('gilded')) cls+=' card-gilded';
+      if(card.enhancements.has('foil')) cls+=' card-foil';
+      el.className = cls;
+      el.innerHTML = `
+        <div class="card-corner">${card.rank}<br>${card.suit}</div>
+        <div class="card-center">${card.suit}</div>
+        <div class="card-corner bottom">${card.rank}<br>${card.suit}</div>`;
+      el.addEventListener('click', () => {
+        const idx2 = this._consumableTargets.indexOf(card);
+        if(idx2>=0) this._consumableTargets.splice(idx2,1);
+        else if(this._consumableTargets.length < c.maxTargets) this._consumableTargets.push(card);
+        this._updateConsTargetHint(c);
+        this._renderConsTargetHand(c);
+        // Auto-confirm when max targets reached
+        if(this._consumableTargets.length >= c.maxTargets) this._confirmConsumableTargets();
+      });
+      container.appendChild(el);
+    });
+  }
+
+  _confirmConsumableTargets() {
+    const idx = this._pendingConsumableIdx;
+    if(idx === null || idx === undefined) return;
+    const c = this.consumables[idx];
+    if(c) c.apply(this, this._consumableTargets);
+    this.consumables.splice(idx, 1);
+    this._consumableTargets = [];
+    this._pendingConsumableIdx = null;
+    document.getElementById('overlay-consumable-target').classList.add('hidden');
+    this.renderConsumables();
+    this.render();
+    this.updateProjectedScore();
+  }
+
+  // ── Projected Score ──────────────────────────
+  updateProjectedScore() {
+    const placeholder = document.getElementById('projected-placeholder');
+    const nameEl      = document.getElementById('projected-hand-name');
+    const formulaEl   = document.getElementById('projected-formula');
+    const totalEl     = document.getElementById('projected-total');
+    if(this.selected.length===0){
+      placeholder.style.display=''; nameEl.style.display='none';
+      formulaEl.style.display='none'; totalEl.style.display='none';
+      return;
+    }
+    placeholder.style.display='none';
+    nameEl.style.display=''; formulaEl.style.display=''; totalEl.style.display='';
+    const sc = this.calculateScore(this.selected);
+    nameEl.textContent   = sc.handName;
+    formulaEl.textContent = `  ${sc.totalChips} chips × ${sc.totalMult.toFixed(1)}`;
+    totalEl.textContent  = `+${sc.total}`;
+  }
+
+  // ── Score Breakdown ──────────────────────────
+  _showBreakdown(sc, finalTotal) {
+    const panel = document.getElementById('score-breakdown');
+    const lines = [
+      { text:`${sc.handName}: ${sc.baseChips} base chips × ${sc.baseMult} mult${this._deckBaseMultBonus>0?' (incl. +'+this._deckBaseMultBonus+' deck bonus)':''}`, cls:'breakdown-base' },
+      { text:`Scoring card values: +${sc.cardValueSum}`, cls:'' },
+    ];
+    if(sc.bonusChips) lines.push({ text:`Joker chips: +${sc.bonusChips}`, cls:'' });
+    this.jokers.filter(j=>j._lastContrib&&j._lastContrib!==0).forEach(j=>{
+      lines.push({ text:`${j.name}: ${j._lastContrib>0?'+':''}${typeof j._lastContrib==='number'?j._lastContrib.toFixed(1):j._lastContrib}`, cls:'breakdown-joker' });
+    });
+    lines.push({ text:`Total: ${sc.totalChips} × ${sc.totalMult.toFixed(1)} = ${finalTotal}`, cls:'total-line' });
+    panel.innerHTML = lines.map(l=>`<div class="breakdown-line ${l.cls}">${l.text}</div>`).join('');
+    panel.classList.add('active');
+    panel.querySelectorAll('.breakdown-line').forEach((el,i)=>setTimeout(()=>el.classList.add('visible'),i*80));
+    clearTimeout(this._breakdownTimer);
+    this._breakdownTimer = setTimeout(()=>this._hideBreakdown(), 2500);
+  }
+
+  _hideBreakdown() {
+    const p = document.getElementById('score-breakdown');
+    p.classList.remove('active');
+    p.innerHTML = '';
+  }
+
+  // ── Shop ────────────────────────────────────
+  showShop() {
+    this.playSound('shop_open');
+    // Change 5: hint on first shop entry
+    this.showHint('first_shop', '💡 Gold doesn\'t carry over past shops. Spend everything — unspent gold is wasted!');
+
+    const unlocks    = getUnlocks();
+    const allowLeg   = unlocks.wonRun && !this.legendaryOfferedThisRun;
+    // Change 4A: offer 4 jokers in shop
+    const jokerOffers = getRandomJokers(this.jokers, 4, this.rng, allowLeg, this.deckType, true);
+    if(jokerOffers.some(j=>j.tier==='Legendary')) this.legendaryOfferedThisRun=true;
+    const consOffers  = getRandomConsumables(2, this.rng);
+    const modOffer    = getRandomModifier(this.round, this.modifiers, this.rng);
+
+    document.getElementById('shop-gold-display').textContent = '💰 '+this.gold+'g';
+
+    // Active joker sell section
+    const ajEl = document.getElementById('shop-active-jokers');
+    ajEl.innerHTML = '';
+    this.jokers.forEach((j,i)=>{
+      const span = document.createElement('span');
+      span.className = 'shop-active-joker';
+      const sp = ['Rare','Legendary'].includes(j.tier)?2:1;
+      span.innerHTML = `${j.name} <button class="sell-btn" data-idx="${i}" data-sp="${sp}">Sell ${sp}g</button>`;
+      ajEl.appendChild(span);
+    });
+    ajEl.querySelectorAll('.sell-btn').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const idx = parseInt(btn.dataset.idx);
+        this.gold+=parseInt(btn.dataset.sp)||1; this.jokers.splice(idx,1);
+        this.renderJokers(); this.showShop();
+      });
+    });
+
+    // Build lanes
+    const lanes = document.getElementById('shop-lanes');
+    lanes.innerHTML = '';
+
+    const jokerCosts = jokerOffers.map(j=>j.tier==='Common'?3:j.tier==='Uncommon'?5:j.tier==='Rare'?8:10); // v5
+    lanes.appendChild(this._shopLane('Jokers', jokerOffers.map((j,i)=>({
+      name: j.name,
+      desc: j.desc,
+      cost: jokerCosts[i],
+      tier: j.tier,
+      onBuy: () => {
+        if(this.jokers.length >= this.maxJokers) {
+          // Change 4B: show confirmation modal, do NOT deduct gold yet (refund)
+          this.gold += jokerCosts[i];
+          document.getElementById('shop-gold-display').textContent='💰 '+this.gold+'g';
+          this._showJokerBuyConfirm(j, jokerCosts[i]);
+        } else {
+          this.jokers.push(j);
+          this.renderJokers();
+          this.showShop();
+        }
+      }
+    }))));
+
+    lanes.appendChild(this._shopLane('Consumables', consOffers.map(c=>({
+      name: c.name, desc: c.desc, cost: c.cost,
+      onBuy: ()=>{
+        if(this.consumables.length>=2){ this.setResult('Consumable slots full!'); return; }
+        this.consumables.push(c);
+        this.renderConsumables();
+        this.showShop();
+      }
+    }))));
+
+    lanes.appendChild(this._shopLane('Run Modifier', modOffer?[{
+      name: modOffer.name, desc: modOffer.desc, cost: modOffer.cost,
+      onBuy: ()=>{ this.modifiers.push(modOffer); modOffer.onPurchase(this); this.showShop(); }
+    }]:[]));
+
+    // v5: Upgrade Lane — replaces Enhancement Lane
+    const upgradeLane = document.createElement('div');
+    upgradeLane.className = 'shop-lane';
+    upgradeLane.innerHTML = '<h4>Upgrades</h4>';
+    const slotBought = this.maxJokers >= 4;
+    const slotAvail  = [6,9].includes(this.round);
+    if(slotAvail && !slotBought) {
+      const slotItem = document.createElement('div');
+      slotItem.className = 'shop-item';
+      const canAfford = this.gold >= 10;
+      slotItem.innerHTML = `
+        <div class="shop-item-name">+1 Joker Slot</div>
+        <div class="shop-item-desc">Raise max joker slots from 3 to 4 permanently. One-time purchase.</div>
+        <div class="shop-item-footer">
+          <span class="shop-item-cost">💰 10g</span>
+          <button class="buy-btn" ${!canAfford?'disabled':''}>Buy</button>
+        </div>`;
+      slotItem.querySelector('.buy-btn').addEventListener('click',()=>{
+        if(this.gold<10) return;
+        this.gold-=10; this._runStats.goldSpent+=10;
+        this.maxJokers=4;
+        document.getElementById('shop-gold-display').textContent='💰 '+this.gold+'g';
+        this.renderJokers(); this.showShop();
+      });
+      upgradeLane.appendChild(slotItem);
+    } else {
+      upgradeLane.innerHTML += slotBought
+        ? '<p style="font-size:0.72rem;color:#86efac;text-align:center;">✓ Slot upgrade purchased</p>'
+        : '<p style="font-size:0.72rem;color:#555;text-align:center;">Available at Round 6 & 9 shops</p>';
+    }
+    lanes.appendChild(upgradeLane);
+
+    document.getElementById('btn-leave-shop').onclick = ()=>{
+      document.getElementById('overlay-shop').classList.add('hidden');
+      this.advanceRound();
+    };
+    document.getElementById('overlay-shop').classList.remove('hidden');
+  }
+
+  _shopLane(title, items) {
+    const div = document.createElement('div');
+    div.className = 'shop-lane';
+    div.innerHTML = `<h4>${title}</h4>`;
+    if(!items.length){
+      div.innerHTML += `<p style="font-size:0.72rem;color:#555;text-align:center;">Nothing available</p>`;
+      return div;
+    }
+    items.forEach(item=>{
+      const el = document.createElement('div');
+      el.className = 'shop-item';
+      const canAfford = this.gold >= item.cost;
+      el.innerHTML = `
+        <div class="shop-item-name">${item.name}${item.tier?` <span class="tier-${item.tier}" style="font-size:0.65rem;">[${item.tier}]</span>`:''}</div>
+        <div class="shop-item-desc">${item.desc}</div>
+        <div class="shop-item-footer">
+          <span class="shop-item-cost">💰 ${item.cost}g</span>
+          <button class="buy-btn" ${!canAfford?'disabled':''}>Buy</button>
+        </div>`;
+      el.querySelector('.buy-btn').addEventListener('click',()=>{
+        if(this.gold < item.cost) return;
+        this.gold -= item.cost;
+        this._runStats.goldSpent += item.cost;
+        document.getElementById('shop-gold-display').textContent='💰 '+this.gold+'g';
+        item.onBuy();
+      });
+      div.appendChild(el);
+    });
+    return div;
+  }
+
+  // ── Change 4B: Joker Buy Confirm ────────────
+  _showJokerBuyConfirm(joker, cost) {
+    document.getElementById('jbc-max').textContent = this.maxJokers;
+    document.getElementById('jbc-new-joker').innerHTML =
+      `<strong>${joker.name}</strong>
+       <span class="tier-${joker.tier}" style="font-size:0.7rem;">[${joker.tier}]</span>
+       <br><span style="font-size:0.8rem;color:#c0a8e0;">${joker.desc}</span>
+       <br><span style="font-size:0.75rem;color:#ffd700;">Cost: ${cost}g</span>`;
+
+    const cj = document.getElementById('jbc-current-jokers');
+    cj.innerHTML = '';
+    this.jokers.forEach(j2=>{
+      const el = document.createElement('div');
+      el.className = 'joker-card';
+      el.style.maxWidth = '160px';
+      el.innerHTML = `<span class="joker-name">🃏 ${j2.name}</span>${j2.desc}`;
+      cj.appendChild(el);
+    });
+
+    document.getElementById('btn-jbc-proceed').onclick = ()=>{
+      this.gold -= cost;
+      this._runStats.goldSpent += cost;
+      document.getElementById('overlay-joker-buy-confirm').classList.add('hidden');
+      document.getElementById('overlay-shop').classList.add('hidden');
+      this.pendingJoker = joker;
+      this._shopOpen = true;
+      this._showJokerReplacePhase2();
+    };
+    document.getElementById('btn-jbc-cancel').onclick = ()=>{
+      document.getElementById('overlay-joker-buy-confirm').classList.add('hidden');
+      this.showShop(); // reopen shop, gold unchanged
+    };
+
+    document.getElementById('overlay-shop').classList.add('hidden');
+    document.getElementById('overlay-joker-buy-confirm').classList.remove('hidden');
+  }
+
+  // ── Joker Pick ───────────────────────────────
+  showJokerPick() {
+    const overlay   = document.getElementById('overlay-joker');
+    const titleEl   = document.getElementById('joker-overlay-title');
+    const descEl    = document.getElementById('joker-overlay-desc');
+    const hintEl    = document.getElementById('joker-overlay-hint');
+    const container = document.getElementById('joker-choices');
+    container.innerHTML = '';
+
+    const isFull = this.jokers.length >= this.maxJokers;
+    titleEl.textContent = isFull ? '🔁 Replace a Joker' : '🎉 Round Complete!';
+    descEl.textContent  = isFull
+      ? 'You have max Jokers. Pick a new one, then choose which to replace.'
+      : 'Choose a Joker to boost your next rounds.';
+    hintEl.textContent  = isFull
+      ? 'Step 1: Choose the new joker you want.'
+      : 'Pick one — it stays active for the rest of your run.';
+
+    const unlocks  = getUnlocks();
+    const allowLeg = unlocks.wonRun && !this.legendaryOfferedThisRun;
+    const choices  = getRandomJokers(this.jokers, 3, this.rng, allowLeg, this.deckType);
+    if(!choices.length){ this.advanceRound(); return; }
+
+    choices.forEach(joker=>{
+      const div = document.createElement('div');
+      div.className = 'joker-choice';
+      div.innerHTML = `
+        <div class="joker-choice-name">${joker.name}</div>
+        <div class="joker-choice-desc">${joker.desc}</div>
+        <div class="joker-choice-tier tier-${joker.tier}">${joker.tier}</div>`;
+      div.addEventListener('click',()=>{
+        if(isFull){ this.pendingJoker=joker; this._showJokerReplacePhase2(); }
+        else {
+          this.jokers.push(joker);
+          overlay.classList.add('hidden');
+          // Change 5: hint on first joker earned
+          this.showHint('first_joker',
+            '💡 Jokers are permanent — they fire every hand for the rest of your run. Build around them!');
+          this.advanceRound();
+        }
+      });
+      container.appendChild(div);
+    });
+
+    document.getElementById('btn-skip-joker').style.display = '';
+    document.getElementById('btn-skip-joker').onclick = ()=>{
+      overlay.classList.add('hidden');
+      this.advanceRound();
+    };
+    overlay.classList.remove('hidden');
+  }
+
+  _showJokerReplacePhase2() {
+    const overlay   = document.getElementById('overlay-joker');
+    const titleEl   = document.getElementById('joker-overlay-title');
+    const descEl    = document.getElementById('joker-overlay-desc');
+    const hintEl    = document.getElementById('joker-overlay-hint');
+    const container = document.getElementById('joker-choices');
+    container.innerHTML = '';
+    titleEl.textContent = '🔁 Choose Which to Remove';
+    descEl.textContent  = `New joker: "${this.pendingJoker.name}"`;
+    hintEl.textContent  = 'Step 2: Click the joker you want to replace. Or skip to keep your current set.';
+
+    this.jokers.forEach((joker,idx)=>{
+      const div = document.createElement('div');
+      div.className = 'joker-replace-card';
+      div.innerHTML = `<div class="joker-choice-name">❌ ${joker.name}</div><div class="joker-choice-desc">${joker.desc}</div>`;
+      div.addEventListener('click',()=>{
+        this.jokers[idx] = this.pendingJoker;
+        this.pendingJoker = null;
+        overlay.classList.add('hidden');
+        this.renderJokers();
+        if(this._shopOpen){ this._shopOpen=false; this.showShop(); }
+        else this.advanceRound();
+      });
+      container.appendChild(div);
+    });
+
+    // Change 4B: allow skipping the replace (discard pending joker)
+    document.getElementById('btn-skip-joker').style.display = '';
+    document.getElementById('btn-skip-joker').onclick = ()=>{
+      this.pendingJoker = null;
+      overlay.classList.add('hidden');
+      if(this._shopOpen){ this._shopOpen=false; this.showShop(); }
+      else this.advanceRound();
+    };
+    overlay.classList.remove('hidden');
+  }
+
+  // ── End Screens ──────────────────────────────
+
+  // Change 2: post-run learning summary
+  _generateCoachingTip(won) {
+    const s = this._runStats;
+    const jokerNames = this.jokers.map(j=>j.name);
+
+    const topHand = Object.entries(s.handTypeCounts).sort((a,b)=>b[1]-a[1])[0];
+    const mostPlayed = topHand ? topHand[0] : null;
+
+    if(s.discardsUsed > s.handsPlayed * 2)
+      return '💡 You discarded frequently. Try committing to a hand type earlier — discards are best saved for when your hand is nearly there.';
+
+    const hasMult = jokerNames.some(n=>
+      ['Fibonacci','Baron','Loyalty Card','Bloodstone','Zany Joker',
+       'Crazy Joker','Droll Joker','Greedy Joker','The Alchemist','Abstract Joker'].includes(n));
+    if(!hasMult && !won)
+      return '💡 Your jokers focused on chips. Adding even one mult joker (like Zany Joker or Crazy Joker) can double your scoring power.';
+
+    const totalHands = Object.values(s.handTypeCounts).reduce((a,b)=>a+b,0);
+    if(mostPlayed && totalHands>0 && s.handTypeCounts[mostPlayed]/totalHands > 0.7)
+      return `💡 You played ${mostPlayed} in ${Math.round(s.handTypeCounts[mostPlayed]/totalHands*100)}% of hands. Diversifying hand types can unlock joker synergies.`;
+
+    if(this.gold >= 6 && !won)
+      return `💡 You finished with ${this.gold}g unspent. In Joker's Gambit gold expires — always spend it in the shop.`;
+
+    if(s.discardsUsed === 0 && !won)
+      return '💡 You used no discards. Discarding weak cards to chase better hands is often worth it — especially early in a round.';
+
+    return won
+      ? '🏆 Excellent run! Try a different deck on your next run to discover new joker synergies.'
+      : '💡 Each deck pairs best with specific jokers — check the synergy hint on the deck selection screen before you start.';
+  }
+
+  showGameOver() {
+    const s   = this._runStats;
+    const gap = this.targetScore - this.score;
+    const topHands = Object.entries(s.handTypeCounts)
+      .sort((a,b)=>b[1]-a[1]).slice(0,3)
+      .map(([k,v])=>`${k} ×${v}`).join(', ') || '—';
+
+    document.getElementById('go-round').textContent = this.round;
+    document.getElementById('go-score').textContent = this.score.toLocaleString();
+    document.getElementById('go-hs').textContent    = 'Best run: Round '+this.highScore;
+
+    document.getElementById('go-summary').innerHTML =
+      `<strong>📊 Run Summary</strong><br>
+       Needed: <b>${this.targetScore.toLocaleString()}</b> pts &nbsp;|&nbsp;
+       Reached: <b>${this.score.toLocaleString()}</b> pts &nbsp;|&nbsp;
+       Short by: <b>${gap.toLocaleString()}</b> pts<br>
+       Hands played: <b>${s.handsPlayed}</b> &nbsp;|&nbsp;
+       Discards used: <b>${s.discardsUsed}</b><br>
+       Best hand: <b>${s.bestHandName||'—'}</b> scored <b>${s.bestHandScore.toLocaleString()}</b> pts<br>
+       Most played: <b>${topHands}</b><br>
+       Active jokers: <b>${this.jokers.map(j=>j.name).join(', ')||'None'}</b>`;
+
+    document.getElementById('go-tip').textContent = this._generateCoachingTip(false);
+    document.getElementById('overlay-gameover').classList.remove('hidden');
+  }
+
+  showVictory() {
+    if(10>this.highScore){ this.highScore=10; localStorage.setItem('jg_hs',10); }
+    const s = this._runStats;
+    const topHands = Object.entries(s.handTypeCounts)
+      .sort((a,b)=>b[1]-a[1]).slice(0,3)
+      .map(([k,v])=>`${k} ×${v}`).join(', ') || '—';
+    const jokerNames = this.jokers.length>0?this.jokers.map(j=>j.name).join(', '):'None';
+    document.getElementById('victory-stats').innerHTML =
+      `<strong>🏅 Final Round:</strong> 10/10<br>
+       <strong>💰 Gold remaining:</strong> ${this.gold}g<br>
+       <strong>💯 Final Score:</strong> ${this.score.toLocaleString()} pts<br>
+       <strong>🃏 Jokers:</strong> ${jokerNames}<br>
+       <strong>🏆 High Score:</strong> Round ${this.highScore}<br>
+       <strong>✋ Hands played:</strong> ${s.handsPlayed} &nbsp;|&nbsp; <strong>Best hand:</strong> ${s.bestHandName||'—'} (${s.bestHandScore.toLocaleString()} pts)<br>
+       <strong>🃏 Most played:</strong> ${topHands}<br>
+       <span style="color:#ffd700;">🏆 Excellent run! Try a different deck on your next run to discover new joker synergies.</span>`;
+    document.getElementById('overlay-victory').classList.remove('hidden');
+  }
+
+  _showMilestones() {
+    if(!this._pendingMilestones||!this._pendingMilestones.length) return;
+    const toast = document.getElementById('milestone-toast');
+    const show = (msg)=>{
+      toast.textContent=msg; toast.classList.add('show');
+      setTimeout(()=>toast.classList.remove('show'),3500);
+    };
+    this._pendingMilestones.forEach((m,i)=>setTimeout(()=>show(m),i*4000));
+    this._pendingMilestones = [];
+  }
+
+  // ── Render ───────────────────────────────────
+  render() {
+    document.getElementById('score-value').textContent    = this.score.toLocaleString();
+    document.getElementById('target-value').textContent   = this.targetScore.toLocaleString();
+    document.getElementById('round-value').textContent    = this.round;
+    document.getElementById('hands-value').textContent    = this.handsLeft;
+    document.getElementById('discards-value').textContent = this.discardsLeft;
+    document.getElementById('discard-count').textContent  = this.discardsLeft;
+    document.getElementById('gold-value').textContent     = '💰 '+this.gold+'g';
+    document.getElementById('hs-span').textContent        = 'Round '+this.highScore;
+
+    const pct = Math.min(100,(this.score/this.targetScore)*100);
+    const bar = document.getElementById('score-bar');
+    bar.style.width = pct+'%';
+
+    const handsEl = document.getElementById('hands-value');
+    if(this.handsLeft===1 && this.score<this.targetScore){
+      handsEl.classList.add('urgent');
+      bar.style.background='linear-gradient(90deg,#f97316,#dc2626)';
+    } else {
+      handsEl.classList.remove('urgent');
+      bar.style.background='linear-gradient(90deg,#3ddc84,#ffd700)';
+    }
+
+    this.renderHandOnly();
+    this.renderJokers();
+    this.renderConsumables();
+    this.updateButtons();
+  }
+
+  renderHandOnly() {
+    const container = document.getElementById('hand-display');
+    container.innerHTML = '';
+    this.hand.forEach(card=>{
+      const el = document.createElement('div');
+      let cls = `card ${card.colorClass}`;
+      if(this.selected.includes(card)) cls+=' selected';
+      if(card.isGhost) cls+=' card-ghost';
+      if(card.enhancements.has('gilded')) cls+=' card-gilded';
+      if(card.enhancements.has('foil')) cls+=' card-foil';
+      if(this._enhanceSelectMode) cls+=' card-target-mode';
+      el.className = cls;
+      el.setAttribute('data-id', card.id);
+      const ghostLabel = card.isGhost
+        ? '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:0.6rem;color:#a855f7;">👻</div>'
+        : '';
+      el.innerHTML = `
+        <div class="card-corner">${card.rank}<br>${card.suit}</div>
+        <div class="card-center">${card.suit}</div>
+        <div class="card-corner bottom">${card.rank}<br>${card.suit}</div>
+        ${ghostLabel}`;
+      el.addEventListener('click',()=>{
+        if(this._enhanceSelectMode){
+          card.enhancements.add(this._enhanceSelectMode);
+          this._enhanceSelectMode = null;
+          this.setResult('Enhancement applied!');
+          this.renderHandOnly();
+          this.showShop();
+          return;
+        }
+        this.toggleSelect(card);
+      });
+      container.appendChild(el);
+    });
+  }
+
+  renderJokers() {
+    document.getElementById('joker-section-title').textContent =
+      `🃏 Active Jokers (${this.jokers.length}/${this.maxJokers})`;
+    const container = document.getElementById('jokers-display');
+    if(!this.jokers.length){
+      container.innerHTML='<em style="color:#555;font-size:0.78rem;">None yet — win a round to earn jokers!</em>';
+      return;
+    }
+    container.innerHTML = '';
+    this.jokers.forEach(j=>{
+      const div = document.createElement('div');
+      div.className = `joker-card joker-rarity-${j.tier}`;
+      div.id = 'joker-'+j.id;
+      let extra = '';
+      if(j.id==='rough_gem')      extra = ` [+${j.counter||0}]`;
+      if(j.id==='wee_joker')      extra = ` [c:+${j.chips||0} m:+${j.multAcc||0}]`;
+      if(j.id==='loyalty_card')   extra = ` [${j.loyaltyCount||0}/4]`;
+      div.innerHTML = `<span class="joker-name">🃏 ${j.name}</span>${j.desc}${extra}`;
+      container.appendChild(div);
+    });
+
+    // Change 5: hint on first joker earned (shown here so it triggers after render)
+  }
+
+  renderConsumables() {
+    const container = document.getElementById('consumables-display');
+    if(!this.consumables.length){
+      container.innerHTML='<em style="color:#555;font-size:0.78rem;">No consumables held</em>';
+      return;
+    }
+    container.innerHTML = '';
+    this.consumables.forEach((c,i)=>{
+      const div = document.createElement('div');
+      div.className = 'consumable-card';
+      div.innerHTML = `<span class="cons-name">${c.name}</span>${c.desc}`;
+      div.addEventListener('click',()=>{
+        // Change 5: hint on first consumable use
+        this.showHint('first_consumable',
+          '💡 Consumables are one-use. A targeting panel will appear for cards-required consumables. Use them strategically!');
+        this.useConsumable(i);
+      });
+      container.appendChild(div);
+    });
+  }
+
+  updateButtons() {
+    document.getElementById('btn-play').disabled    = this.selected.length===0 || this.handsLeft<=0;
+    document.getElementById('btn-discard').disabled = this.selected.length===0 || this.discardsLeft<=0;
+    // v5: Gambit button
+    const gambBtn = document.getElementById('btn-gambit');
+    if(gambBtn) {
+      const canGambit = !this._gambittUsed && this.jokers.length>0 && this.handsLeft>0;
+      gambBtn.disabled = !canGambit;
+      if(!this._gambittDeclared) gambBtn.classList.remove('declared');
+    }
+  }
+
+  // ── Helpers ──────────────────────────────────
+  setResult(msg){ document.getElementById('hand-result').textContent=msg; }
+  setLog(msg)   { document.getElementById('score-log').textContent=msg; }
+
+  showHistory() {
+    try {
+      const hist = JSON.parse(localStorage.getItem('jg_history')||'[]');
+      const el   = document.getElementById('history-content');
+      if(!hist.length){ el.innerHTML='<p style="color:#555;font-size:0.85rem;">No runs recorded yet.</p>'; }
+      else el.innerHTML = hist.map(e=>`
+        <div class="history-entry ${e.won?'won':''}">
+          <strong>${e.won?'🏆 Win':'💀 Loss'}</strong> — Round ${e.round} — ${e.score.toLocaleString()} pts<br>
+          <span style="color:#9ca3af;">Deck: ${e.deck||'?'} | ${e.date||''}</span><br>
+          <span style="color:#c084fc;font-size:0.72rem;">Jokers: ${(e.jokers||[]).join(', ')||'None'}</span>
+        </div>`).join('');
+    } catch(e){}
+    document.getElementById('overlay-history').classList.remove('hidden');
+  }
+
+  bindUI() {
+    document.getElementById('btn-play').addEventListener('click',    ()=>this.playHand());
+    document.getElementById('btn-discard').addEventListener('click', ()=>this.discard());
+    document.getElementById('btn-rules').addEventListener('click',   ()=>document.getElementById('overlay-rules').classList.remove('hidden'));
+    document.getElementById('btn-history').addEventListener('click', ()=>this.showHistory());
+    document.getElementById('btn-mute').addEventListener('click',    ()=>this.toggleMute());
+
+    // Close tip overlay on backdrop click
+    document.getElementById('overlay-tip').addEventListener('click', e=>{
+      if(e.target===document.getElementById('overlay-tip'))
+        document.getElementById('overlay-tip').classList.add('hidden');
+    });
+    document.getElementById('overlay-rules').addEventListener('click', e=>{
+      if(e.target===document.getElementById('overlay-rules'))
+        document.getElementById('overlay-rules').classList.add('hidden');
+    });
+
+    // Change 1: Consumable overlay buttons
+    document.getElementById('btn-cons-confirm').addEventListener('click', ()=>this._confirmConsumableTargets());
+    document.getElementById('btn-cons-cancel').addEventListener('click', ()=>{
+      this._consumableTargets = [];
+      this._pendingConsumableIdx = null;
+      document.getElementById('overlay-consumable-target').classList.add('hidden');
+    });
+
+    // Change 5 Tier 3: Rules tab switching
+    document.querySelectorAll('.rules-tab').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        document.querySelectorAll('.rules-tab-panel').forEach(p=>p.classList.remove('active'));
+        document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+        document.querySelectorAll('.rules-tab').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+  }
+}
+
+// ── Boot ──────────────────────────────────────
+const game = new Game();
+</script>
+</body>
+</html>
