@@ -505,8 +505,8 @@ body {
     <button class="btn btn-info" style="padding:6px 10px;font-size:0.72rem;" onclick="showTip('How Scoring Works','Score = (Base Chips + Card Values + Bonus Chips) × (Base Mult + Mult Bonus). Higher poker hands give bigger base values. Jokers add chips and mult. Mult jokers scale everything — even a small mult increase has a huge effect. A=11 (or 20 in Commoner\'s Deck), face cards=10.')">?</button>
     <button class="btn btn-discard" id="btn-discard">↩ Discard <span class="counter-badge" id="discard-count">3</span></button>
     <button class="btn btn-gambit" id="btn-gambit" onclick="game.declareGambit()">🎲 The Gambit</button>
-    <button class="btn btn-info" id="btn-rules">📖 Reference</button>
-    <button class="btn btn-info" id="btn-guide">📘 Guide</button>
+    <button class="btn btn-info" id="btn-rules"> </button>
+    <button class="btn btn-info" id="btn-guide">📖 Guide</button>
     <button class="btn btn-info" id="btn-history">📜 History</button>
   </div>
 </div>
@@ -518,7 +518,7 @@ body {
 
 <!-- Deck Select -->
 <div class="overlay" id="overlay-deck-select">
-  <div class="modal" style="max-width:800px;">
+  <div class="modal" style="max-width:800px;overflow-y:auto;max-height:90vh;">
     <h2>🃏 Choose Your Deck
       <button class="btn btn-info" style="font-size:0.7rem;padding:4px 10px;margin-left:10px;vertical-align:middle;" onclick="showTip('Which Deck Should I Pick?','Standard Deck is the most flexible — good for learning. Short Deck suits aggressive play with fewer but stronger cards. King\'s Court and Mirrored Deck reward building around specific suits or face cards. Commoner\'s Deck removes face cards but Aces count for 20 chips — starts each hand with +2 mult. Pair with number-rank jokers like Fibonacci, Odd Todd, and Scholar.')">?</button>
     </h2>
@@ -619,76 +619,7 @@ body {
 <!-- Rules / Reference (tabbed — Change 5 Tier 3) -->
 <div class="overlay hidden" id="overlay-rules">
   <div class="modal" style="max-width:520px;text-align:left;overflow-y:auto;max-height:88vh;">
-    <h2 style="text-align:center;margin-bottom:10px;">📖 Reference</h2>
-    <div id="rules-tabs" style="display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap;">
-      <button class="btn btn-info rules-tab active" data-tab="hand-values">Hand Values</button>
-      <button class="btn btn-info rules-tab" data-tab="joker-guide">Joker Guide</button>
-      <button class="btn btn-info rules-tab" data-tab="deck-guide">Deck Guide</button>
-      <button class="btn btn-info rules-tab" data-tab="formula">Scoring Formula</button>
-    </div>
-    <div id="rules-tab-content">
-      <!-- Hand Values -->
-      <div class="rules-tab-panel active" id="panel-hand-values">
-        <table class="rules-table">
-          <tr style="color:#ffd700;"><th>Hand</th><th>Chips</th><th>Mult</th></tr>
-          <tr><td>High Card</td><td>5</td><td>×1</td></tr>
-          <tr><td>Pair</td><td>10</td><td>×2</td></tr>
-          <tr><td>Two Pair</td><td>20</td><td>×2</td></tr>
-          <tr><td>Three of a Kind</td><td>30</td><td>×3</td></tr>
-          <tr><td>Straight</td><td>30</td><td>×4</td></tr>
-          <tr><td>Flush</td><td>35</td><td>×4</td></tr>
-          <tr><td>Full House</td><td>40</td><td>×4</td></tr>
-          <tr><td>Four of a Kind</td><td>60</td><td>×7</td></tr>
-          <tr><td>Straight Flush</td><td>100</td><td>×8</td></tr>
-          <tr><td>Royal Flush</td><td>100</td><td>×8</td></tr>
-        </table>
-        <p style="margin-top:10px;font-size:0.73rem;color:#888;">Score = (Base Chips + Card Values + Bonus Chips) × (Base Mult + Mult Bonus)<br>A=11 (Commoner's Deck: A=20), Face cards=10.</p>
-      </div>
-      <!-- Joker Guide -->
-      <div class="rules-tab-panel" id="panel-joker-guide">
-        <p style="font-size:0.8rem;color:#c0a8e0;line-height:1.7;">
-          <strong style="color:#ffd700;">Chip jokers</strong> add flat chips to the Chips total.
-          <strong style="color:#ffd700;">Mult jokers</strong> add to the Mult total.
-          <strong style="color:#ffd700;">Multiplicative jokers (×)</strong> multiply your entire Mult —
-          these are the most powerful. Jokers are permanent for the whole run.<br><br>
-          <strong style="color:#60a5fa;">Common</strong> — offered often, moderate power.<br>
-          <strong style="color:#fbbf24;">Uncommon</strong> — offered less, strong synergies.<br>
-          <strong style="color:#f87171;">Rare</strong> — rare offers, very powerful.<br>
-          <strong style="color:#a855f7;">Legendary</strong> — only offered after winning once.<br><br>
-          Build around 2–3 jokers that all fire on the same hand type for maximum synergy.
-        </p>
-      </div>
-      <!-- Deck Guide -->
-      <div class="rules-tab-panel" id="panel-deck-guide">
-        <table class="rules-table">
-          <tr style="color:#ffd700;"><th>Deck</th><th>Cards</th><th>A Value</th><th>Best Joker Pairs</th></tr>
-          <tr><td>Standard</td><td>52 (full)</td><td>11</td><td>Abstract Joker, Loyalty Card, Midas Touch</td></tr>
-          <tr><td>Commoner's</td><td>40 (2–10+A)</td><td>20</td><td>Odd Todd, Fibonacci, Scholar, The Alchemist</td></tr>
-          <tr><td>King's Court</td><td>60 (+2K/suit)</td><td>11</td><td>Baron, Royal Court, Scary Face</td></tr>
-          <tr><td>Short Deck</td><td>36 (6–A)</td><td>11</td><td>Half Joker, The Duo, Erosion</td></tr>
-          <tr><td>Mirrored</td><td>78 (2×♥♦)</td><td>11</td><td>Suited Up, Bloodstone, Greedy Joker</td></tr>
-          <tr><td>Ghost</td><td>52 (8 ghost)</td><td>11</td><td>Road Runner, Suited Up, Droll Joker</td></tr>
-          <tr><td>Speed</td><td>52 (full)</td><td>11</td><td>Abstract Joker, Loyalty Card, Erosion</td></tr>
-        </table>
-        <p style="font-size:0.73rem;color:#888;margin-top:8px;">Ghost cards are wild for flush/straight detection but score 0 chips. Commoner's Deck starts each hand with +2 mult.</p>
-      </div>
-      <!-- Scoring Formula -->
-      <div class="rules-tab-panel" id="panel-formula">
-        <p style="font-size:0.8rem;color:#c0a8e0;line-height:1.8;">
-          <strong style="color:#93c5fd;">Formula:</strong> Score = (Base Chips + Card Values + Bonus Chips) × (Base Mult + Mult Bonus)<br><br>
-          <strong style="color:#ffd700;">Worked Example:</strong><br>
-          Full House with 2× Aces + Zany Joker:<br>
-          Base = 40 chips × 4 mult<br>
-          Card values: A(11)+A(11)+K(10)+K(10)+Q(10) = 52<br>
-          Zany Joker: +12 mult<br>
-          Score = (40+52) × (4+12) = 92 × 16 = <strong style="color:#7fff7f;">1,472</strong><br><br>
-          <strong style="color:#e9a0ff;">Additive vs. Multiplicative:</strong><br>
-          Additive jokers add to chips or mult totals.<br>
-          Multiplicative jokers (Baron, Loyalty Card, Bloodstone) multiply the <em>entire</em> mult —
-          doubling it doubles your whole score. They fire after all additive jokers.
-        </p>
-      </div>
-    </div>
+    
     <button class="btn btn-info" style="margin-top:14px;width:100%;" onclick="document.getElementById('overlay-rules').classList.add('hidden')">Close</button>
   </div>
 </div>
@@ -742,13 +673,29 @@ body {
       <p class="guide-p">Every hand you play produces a score using this formula:</p>
       <div class="guide-formula-box">
         <strong>Score = (Base Chips + Card Values + Bonus Chips) × (Base Mult + Mult Bonus)</strong><br><br>
-        <strong>Base Chips &amp; Base Mult</strong> come from the poker hand type:<br>
-        Royal Flush: 120 × 8 &nbsp;|&nbsp; Straight Flush: 100 × 8 &nbsp;|&nbsp; Four of a Kind: 60 × 7<br>
-        Full House: 40 × 4 &nbsp;|&nbsp; Flush: 35 × 4 &nbsp;|&nbsp; Straight: 30 × 4 &nbsp;|&nbsp; Three of a Kind: 30 × 3<br>
-        Two Pair: 20 × 2 &nbsp;|&nbsp; Pair: 10 × 2 &nbsp;|&nbsp; High Card: 5 × 1<br><br>
-        <strong>Card Values</strong> only count from <em>scoring cards</em> (the cards forming the hand pattern).<br>
-        Number cards = face value &nbsp;|&nbsp; J/Q/K = 10 &nbsp;|&nbsp; Ace = 11 (20 in Commoner's Deck)<br><br>
-        <strong>Worked Example — Full House (A♠ A♥ K♣ K♦ Q♠) + Zany Joker:</strong><br>
+      </div>
+      <p class="guide-p">Base Chips & Base Mult come from the poker hand type:</p>
+      <div class="guide-formula-box">
+      <table class="rules-table">
+          <tr style="color:#ffd700;"><th>Hand</th><th>Chips</th><th>Mult</th></tr>
+          <tr><td>High Card</td><td>5</td><td>×1</td></tr>
+          <tr><td>Pair</td><td>10</td><td>×2</td></tr>
+          <tr><td>Two Pair</td><td>20</td><td>×2</td></tr>
+          <tr><td>Three of a Kind</td><td>30</td><td>×3</td></tr>
+          <tr><td>Straight</td><td>30</td><td>×4</td></tr>
+          <tr><td>Flush</td><td>35</td><td>×4</td></tr>
+          <tr><td>Full House</td><td>40</td><td>×4</td></tr>
+          <tr><td>Four of a Kind</td><td>60</td><td>×7</td></tr>
+          <tr><td>Straight Flush</td><td>100</td><td>×8</td></tr>
+          <tr><td>Royal Flush</td><td>100</td><td>×8</td></tr>
+        </table>
+      </div>
+      <p class="guide-p"><strong>Card Values</strong> only count from <em>scoring cards</em> (the cards forming the hand pattern).<br>
+      Number cards = face value &nbsp;|&nbsp; J/Q/K = 10 &nbsp;|&nbsp; Ace = 11 (20 in Commoner's Deck)<br>
+      </p>
+      <p class="guide-p">See some worked examples:</p>
+      <div class="guide-formula-box">
+        <strong>Full House (A♠ A♥ K♣ K♦ Q♠) + Zany Joker:</strong><br>
         Base: 40 chips × 4 mult &nbsp;|&nbsp; Card values: 11+11+10+10+10 = 52 &nbsp;|&nbsp; Zany Joker: +12 mult<br>
         <span class="guide-result">Score = (40 + 52) × (4 + 12) = 92 × 16 = 1,472 pts</span>
       </div>
@@ -864,12 +811,8 @@ body {
     <!-- Enhancements -->
     <div class="guide-card-section" id="guide-s6">
       <h3 class="guide-h2">6 · Card Enhancements</h3>
-      <p class="guide-p">Applied to individual cards via the Shop's Enhancement lane. Persist for the entire run.</p>
-      <table class="guide-table">
-        <tr><th>Enhancement</th><th>Effect</th></tr>
-        <tr><td>✨ Gilded</td><td>+10 bonus chips each time this card is played (gold border)</td></tr>
-        <tr><td>🔷 Foil</td><td>+4 mult the first time a Foil card is played each round (blue shimmer)</td></tr>
-      </table>
+      <p class="guide-p">This is not available yet.</p>
+      
     </div>
 
     <!-- Run Modifiers -->
