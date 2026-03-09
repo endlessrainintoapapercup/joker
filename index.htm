@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Joker's Gambit v5</title>
+<title>Joker's Gambit v6</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -158,10 +158,7 @@ body {
   60%  { transform: translateY(-40px) scale(1.15); opacity: 1; }
   100% { transform: translateY(0) scale(0.8); opacity: 0; }
 }
-.card-gilded { border: 2px solid #ffd700 !important; box-shadow: 0 0 8px rgba(255,215,0,0.7) !important; }
-.card-foil { border: 2px solid #60a5fa !important; background: linear-gradient(135deg,#fff,#bfdbfe,#fff) !important; }
 .card-ghost { opacity: 0.55; border-style: dashed !important; border-color: #a855f7 !important; }
-.card.card-target-mode { box-shadow: 0 0 10px rgba(255,215,0,0.5); cursor: crosshair; }
 
 /* ── Controls ── */
 #controls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; align-items: center; }
@@ -444,9 +441,106 @@ body {
   .guide-h3 { font-size: 0.85rem; }
   .guide-p { font-size: 0.78rem; }
 }
+
+/* ── Title Screen ── */
+.title-difficulty-btn {
+  background: rgba(255,255,255,0.06);
+  border: 2px solid rgba(255,255,255,0.2);
+  color: #c0a8e0;
+  padding: 10px 18px;
+  font-size: 0.85rem;
+  min-width: 110px;
+}
+.title-difficulty-btn.selected {
+  background: rgba(255,215,0,0.15);
+  border-color: #ffd700;
+  color: #ffd700;
+}
+/* ── Gambit button compact style ── */
+.btn-gambit { padding: 8px 14px !important; font-size: 0.8rem !important; }
+.gambit-label { display: block; font-size: 0.5rem; letter-spacing: 1px; margin-top: 2px; }
+/* ── Gambit declared visual ── */
+.gambit-declared-banner {
+  background: rgba(220,38,38,0.15);
+  border: 1px solid #dc2626;
+  border-radius: 8px;
+  padding: 6px 12px;
+  text-align: center;
+  font-size: 0.82rem;
+  color: #fca5a5;
+  margin-bottom: 6px;
+  font-weight: bold;
+}
+/* ── Pin breakdown button ── */
+#score-breakdown { position: relative; }
+#btn-pin-breakdown {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 2px;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+#btn-pin-breakdown:hover { opacity: 1; }
+/* ── Mobile single-column shop ── */
+@media (max-width: 600px) {
+  #overlay-shop .modal {
+    padding: 14px 12px;
+    max-height: 95vh;
+    overflow-y: auto;
+  }
+  .shop-lanes {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .shop-item-name { font-size: 0.85rem; }
+  .shop-item-desc { font-size: 0.78rem; }
+  .shop-item-cost { font-size: 0.82rem; }
+  .buy-btn { padding: 5px 14px; font-size: 0.8rem; }
+  .shop-gold { font-size: 1rem; }
+}
 </style>
 </head>
 <body>
+
+<!-- Title Screen Overlay -->
+<div id="overlay-title" class="overlay">
+  <div class="modal" style="max-width:520px;text-align:center;">
+    <h2 style="font-size:2.4rem;margin-bottom:4px;">🃏 Joker's Gambit</h2>
+    <p style="color:#a78bfa;letter-spacing:1px;margin-bottom:20px;font-style:italic;">Stack the deck. Beat the odds.</p>
+
+    <div style="margin-bottom:20px;">
+      <div style="font-size:0.75rem;color:#aaa;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Select Difficulty</div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+        <button class="btn title-difficulty-btn" id="diff-standard" data-diff="standard" onclick="game.selectDifficulty('standard')">
+          ⚖️ Standard<span style="display:block;font-size:0.6rem;font-weight:normal;margin-top:2px;">×1.0 targets</span>
+        </button>
+        <button class="btn title-difficulty-btn" id="diff-challenging" data-diff="challenging" onclick="game.selectDifficulty('challenging')">
+          🔥 Challenging<span style="display:block;font-size:0.6rem;font-weight:normal;margin-top:2px;">×2.0 targets</span>
+        </button>
+        <button class="btn title-difficulty-btn" id="diff-insane" data-diff="insane" onclick="game.selectDifficulty('insane')">
+          💀 Insane<span style="display:block;font-size:0.6rem;font-weight:normal;margin-top:2px;">×2.5 targets</span>
+        </button>
+      </div>
+    </div>
+
+    <button class="btn btn-play" id="btn-title-newgame" onclick="game.startFromTitle()" style="font-size:1.1rem;padding:13px 40px;margin-bottom:18px;">▶ New Game</button>
+
+    <div id="title-stats-strip" style="display:none;background:rgba(255,215,0,0.07);border:1px solid rgba(255,215,0,0.2);border-radius:10px;padding:10px 14px;font-size:0.76rem;color:#c0a8e0;line-height:1.9;margin-bottom:16px;"></div>
+
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-info" onclick="document.getElementById('overlay-history').classList.remove('hidden')">📜 History</button>
+      <button class="btn btn-info" onclick="document.getElementById('overlay-guide').classList.remove('hidden')">📖 Guide</button>
+      <button class="btn btn-info" id="btn-title-mute" onclick="game.toggleMute()">🔊</button>
+    </div>
+  </div>
+</div>
+
 <div id="game-container">
   <!-- Header -->
   <div id="header">
@@ -502,10 +596,9 @@ body {
   <!-- Controls -->
   <div id="controls">
     <button class="btn btn-play" id="btn-play">▶ Play Hand</button>
-    <button class="btn btn-info" style="padding:6px 10px;font-size:0.72rem;" onclick="showTip('How Scoring Works','Score = (Base Chips + Card Values + Bonus Chips) × (Base Mult + Mult Bonus). Higher poker hands give bigger base values. Jokers add chips and mult. Mult jokers scale everything — even a small mult increase has a huge effect. A=11 (or 20 in Commoner\'s Deck), face cards=10.')">?</button>
     <button class="btn btn-discard" id="btn-discard">↩ Discard <span class="counter-badge" id="discard-count">3</span></button>
-    <button class="btn btn-gambit" id="btn-gambit" onclick="game.declareGambit()">🎲 The Gambit</button>
-    <button class="btn btn-info" id="btn-rules"> </button>
+    <button class="btn btn-gambit" id="btn-gambit" title="Declare The Gambit (first hand only)">🎲<span class="gambit-label">GAMBIT</span></button>
+    <button class="btn btn-info" id="btn-quicktip" style="padding:6px 10px;font-size:0.72rem;" onclick="showTip('Quick Tips','Score = (Chips + Card Values) × Mult. Higher poker hands give bigger base values. Jokers scale everything. A=11 (or 20 in Commoner\'s Deck), face cards=10. Gold doesn\'t carry over — spend it all in the shop!')">? <span style="font-size:0.6rem;">Tips</span></button>
     <button class="btn btn-info" id="btn-guide">📖 Guide</button>
     <button class="btn btn-info" id="btn-history">📜 History</button>
   </div>
@@ -517,7 +610,7 @@ body {
 <!-- ═══ OVERLAYS ═══ -->
 
 <!-- Deck Select -->
-<div class="overlay" id="overlay-deck-select">
+<div class="overlay hidden" id="overlay-deck-select">
   <div class="modal" style="max-width:800px;overflow-y:auto;max-height:90vh;">
     <h2>🃏 Choose Your Deck
       <button class="btn btn-info" style="font-size:0.7rem;padding:4px 10px;margin-left:10px;vertical-align:middle;" onclick="showTip('Which Deck Should I Pick?','Standard Deck is the most flexible — good for learning. Short Deck suits aggressive play with fewer but stronger cards. King\'s Court and Mirrored Deck reward building around specific suits or face cards. Commoner\'s Deck removes face cards but Aces count for 20 chips — starts each hand with +2 mult. Pair with number-rank jokers like Fibonacci, Odd Todd, and Scholar.')">?</button>
@@ -581,7 +674,7 @@ body {
   <div class="modal" style="max-width:880px;overflow-y:auto;max-height:90vh;">
     <div class="shop-header">
       <h2 style="margin:0">🛒 The Shop
-        <button class="btn btn-info" style="font-size:0.7rem;padding:4px 10px;margin-left:8px;vertical-align:middle;" onclick="showTip('Shop Guide','Jokers are permanent and the most powerful investment. Consumables are one-use tools for tough spots. Card enhancements persist across the whole run. Run Modifiers change the rules permanently. Gold left over when you leave the shop is lost — spend everything!')">?</button>
+        <button class="btn btn-info" style="font-size:0.7rem;padding:4px 10px;margin-left:8px;vertical-align:middle;" onclick="showTip('Shop Guide','Jokers are permanent and the most powerful investment. Consumables are one-use tools for tough spots. Run Modifiers change the rules permanently. Gold left over when you leave the shop is lost — spend everything!')">?</button>
       </h2>
       <span class="shop-gold" id="shop-gold-display">💰 0g</span>
     </div>
@@ -785,8 +878,8 @@ body {
         <tr><td>The Forger</td><td><span class="guide-tag guide-tag-rare">Rare</span></td><td>Copies the effect of the next joker in your list once per round</td></tr>
         <tr><td>Compound Interest</td><td><span class="guide-tag guide-tag-rare">Rare</span></td><td>Accumulates chips from every hand this round; adds them all at end</td></tr>
         <tr><td>The Librarian</td><td><span class="guide-tag guide-tag-rare">Rare</span></td><td>+5 mult per unique hand type played this round</td></tr>
-        <tr><td>Glass Cannon</td><td><span class="guide-tag guide-tag-rare">Rare</span></td><td><span class="guide-tag guide-tag-multmult">×mult</span> ×3 mult — but hand size permanently reduced to 3. (Reward only.)</td></tr>
-        <tr><td>Oops! All 6s</td><td><span class="guide-tag guide-tag-legendary">Legendary</span></td><td><span class="guide-tag guide-tag-multmult">×mult</span> Doubles ALL mult for one hand, then consumed. (After first run win.)</td></tr>
+        <tr><td>Glass Cannon</td><td><span class="guide-tag guide-tag-rare">Rare</span></td><td><span class="guide-tag guide-tag-multmult">×mult</span> Activate once per round to give your next hand ×3 mult. (Reward only.)</td></tr>
+        <tr><td>Curtain Call</td><td><span class="guide-tag guide-tag-legendary">Legendary</span></td><td><span class="guide-tag guide-tag-multmult">×mult</span> Arm at any time to double all mult for one hand — then consumed. (After first run win.)</td></tr>
       </table>
     </div>
 
@@ -811,7 +904,7 @@ body {
     <!-- Enhancements -->
     <div class="guide-card-section" id="guide-s6">
       <h3 class="guide-h2">6 · Card Enhancements</h3>
-      <p class="guide-p">This is not available yet.</p>
+      <p class="guide-p">Card enhancements are coming in a future update.</p>
       
     </div>
 
@@ -834,8 +927,8 @@ body {
     <!-- The Gambit -->
     <div class="guide-card-section" id="guide-s8">
       <h3 class="guide-h2">8 · The Gambit</h3>
-      <p class="guide-p">Once per run you can declare <strong>The Gambit</strong> before playing a hand. You must score 1.5× the round target in a single hand. Success instantly clears the round. Failure costs you your weakest joker — but the round continues normally.</p>
-      <div class="guide-tip-box">💡 Best used on rounds where you have a near-guaranteed monster hand (e.g. Royal Flush setup with active mult jokers) and want to save hands for later rounds.</div>
+      <p class="guide-p">Once per round (first hand only) you can declare <strong>The Gambit</strong>. You must score 1.5× the round target in that single hand. Success instantly clears the round and awards +3g. Failure deducts 2g (never below 0) — the round continues normally. Unavailable on the final round (Round 10).</p>
+      <div class="guide-tip-box">💡 Best used on the first hand of a round when you have strong mult jokers lined up. The gambit resets every round — use it freely!</div>
     </div>
 
     <!-- Strategies -->
@@ -896,6 +989,29 @@ function mulberry32(seed) {
 //  CONSTANTS — Change 6: reshaped target curve
 // ═══════════════════════════════════════════════════════
 const ROUND_TARGETS = [200, 300, 400, 550, 800, 1000, 1500, 1950, 2700, 3800];
+
+const DIFFICULTY_MULTIPLIERS = { standard: 1.0, challenging: 2.0, insane: 2.5 };
+
+const LIFETIME_STATS_DEFAULT = {
+  totalRuns: 0, totalWins: 0, totalHandsPlayed: 0,
+  totalGoldEarned: 0, handTypeCounts: {},
+  highestSingleHand: 0, gambitsWon: 0
+};
+
+function updateLifetimeStats(game, won) {
+  try {
+    const s = JSON.parse(localStorage.getItem('jg_lifetime_stats') || JSON.stringify(LIFETIME_STATS_DEFAULT));
+    s.totalRuns++;
+    if (won) s.totalWins++;
+    s.totalHandsPlayed += game._runStats.handsPlayed;
+    s.totalGoldEarned  += game._runStats.goldEarned;
+    s.highestSingleHand = Math.max(s.highestSingleHand, game._runStats.bestHandScore);
+    s.gambitsWon += game._gambittWonCount;
+    for (const [k, v] of Object.entries(game._runStats.handTypeCounts))
+      s.handTypeCounts[k] = (s.handTypeCounts[k] || 0) + v;
+    localStorage.setItem('jg_lifetime_stats', JSON.stringify(s));
+  } catch(e) {}
+}
 
 const ROUND_CONFIG = [
   { hands:4, discards:3, baseGold:2, shopRound:false, handSize:7 }, // R1
@@ -1272,11 +1388,14 @@ const ALL_JOKERS = [
     desc:'×2 mult if hand is exactly a Pair', isMultiplicative:true,
     apply(r,cards,h){ if(h==='Pair') r.baseMult*=2; }},
 
-  { id:'oops_all_6s',    tier:'Legendary',name:'Oops! All 6s',
-    desc:'Doubles all mult for one hand — consumed on use', isMultiplicative:true,
+  { id:'oops_all_6s',    tier:'Legendary',name:'Curtain Call',
+    desc:'Arm at any time to double all mult for one hand — then consumed.', isMultiplicative:true,
+    curtainCallArmed: false,
     apply(r,cards,h,g){
-      r.baseMult*=2; r.multBonus*=2;
-      if(g) setTimeout(()=>{ g.jokers=g.jokers.filter(j=>j.id!=='oops_all_6s'); g.renderJokers(); },50);
+      if(this.curtainCallArmed){
+        r.baseMult*=2; r.multBonus*=2;
+        if(g) setTimeout(()=>{ g.jokers=g.jokers.filter(j=>j.id!=='oops_all_6s'); g.renderJokers(); },50);
+      }
     }},
 
   // ── 7B: Four New Jokers ──
@@ -1304,11 +1423,16 @@ const ALL_JOKERS = [
 
   { id:'glass_cannon',   tier:'Rare',     name:'Glass Cannon',
     noShop:true,
-    desc:'x3 mult this hand, but your hand size is permanently reduced to 3 cards',
+    desc:'Activate once per round to give your next hand ×3 mult.',
     isMultiplicative:true,
+    armed: false,
+    usedThisRound: false,
     apply(r,cards,h,g){
-      r.baseMult*=3;
-      if(g && g.handSize>3){ g.handSize=3; if(g.hand.length>3) g.hand=g.hand.slice(0,3); }
+      if(this.armed){
+        r.baseMult*=3;
+        this.armed=false;
+        this.usedThisRound=true;
+      }
     } },
 ];
 
@@ -1414,7 +1538,7 @@ function checkMilestones(game) {
 
 function logRunHistory(game, won) {
   try {
-    const entry = { round:game.round, score:game.score, deck:game.deckType, jokers:game.jokers.map(j=>j.name), won, date:new Date().toLocaleDateString() };
+    const entry = { round:game.round, score:game.score, deck:game.deckType, jokers:game.jokers.map(j=>j.name), won, date:new Date().toLocaleDateString(), difficulty:game.difficulty||'standard' };
     const hist = JSON.parse(localStorage.getItem('jg_history')||'[]');
     hist.unshift(entry);
     if(hist.length>10) hist.pop();
@@ -1424,6 +1548,7 @@ function logRunHistory(game, won) {
     hof.sort((a,b)=>b.round-a.round||b.score-a.score);
     hof.splice(3);
     localStorage.setItem('jg_hof', JSON.stringify(hof));
+    updateLifetimeStats(game, won);
   } catch(e){}
 }
 
@@ -1466,7 +1591,6 @@ class Game {
     this.handsPlayedThisRound = 0;
     this.discardsUsedThisRound = 0;
     this.startHandsLeft = 4;
-    this.foilUsedThisRound = false;
 
     // Change 3: event system removed — these fields no longer used
     // (kept as stubs so no runtime errors if anything references them)
@@ -1499,13 +1623,15 @@ class Game {
     this._pendingConsumableIdx = null;
     this._consumableTargets = [];
 
-    // Enhancement select state (shop enhance lane)
-    this._enhanceSelectMode = null;
     this._shopOpen = false;
 
-    // v5: Gambit mechanic
-    this._gambittUsed = false;
+    // v5: Gambit mechanic — replaced by v6 per-round system
+    this.difficulty = 'standard';
+    this._gambittWindowOpen = true;
     this._gambittDeclared = false;
+    this._gambittDeclaredCount = 0;
+    this._gambittWonCount = 0;
+    this._breakdownPinned = false;
 
     // Change 5: hints tracking
     this._hintsShown = {};
@@ -1519,7 +1645,7 @@ class Game {
 
     window._game = this;
     this.bindUI();
-    this.showDeckSelect();
+    this.showTitleScreen();
   }
 
   // ── Audio ──────────────────────────────────
@@ -1568,6 +1694,8 @@ class Game {
     this.muted=!this.muted;
     localStorage.setItem('jg_mute',this.muted);
     document.getElementById('btn-mute').textContent=this.muted?'🔇':'🔊';
+    const tb = document.getElementById('btn-title-mute');
+    if(tb) tb.textContent = this.muted?'🔇':'🔊';
   }
 
   // ── Change 5 Tier 1: Contextual Hints ──────
@@ -1588,6 +1716,41 @@ class Game {
   }
 
   // ── Deck Selection ──────────────────────────
+  showTitleScreen() {
+    // Populate lifetime stats strip if present
+    try {
+      const s = JSON.parse(localStorage.getItem('jg_lifetime_stats') || 'null');
+      const strip = document.getElementById('title-stats-strip');
+      if(s && s.totalRuns > 0 && strip) {
+        const topHand = Object.entries(s.handTypeCounts||{}).sort((a,b)=>b[1]-a[1])[0];
+        const fav = topHand ? topHand[0] : '—';
+        strip.innerHTML =
+          `Runs: <b>${s.totalRuns}</b> &nbsp;|&nbsp; Wins: <b>${s.totalWins}</b> &nbsp;|&nbsp; Hands played: <b>${s.totalHandsPlayed}</b> &nbsp;|&nbsp; Favourite hand: <b>${fav}</b><br>
+           Best single hand: <b>${s.highestSingleHand.toLocaleString()}</b> pts &nbsp;|&nbsp; Gambits won: <b>${s.gambitsWon}</b>`;
+        strip.style.display = '';
+      }
+    } catch(e){}
+    // Set default difficulty selection
+    this.selectDifficulty(this.difficulty || 'standard');
+    // Update mute button
+    const mb = document.getElementById('btn-title-mute');
+    if(mb) mb.textContent = this.muted ? '🔇' : '🔊';
+    document.getElementById('overlay-title').classList.remove('hidden');
+  }
+
+  selectDifficulty(diff) {
+    this.difficulty = diff;
+    ['standard','challenging','insane'].forEach(d=>{
+      const btn = document.getElementById('diff-'+d);
+      if(btn) btn.classList.toggle('selected', d===diff);
+    });
+  }
+
+  startFromTitle() {
+    document.getElementById('overlay-title').classList.add('hidden');
+    this.showDeckSelect();
+  }
+
   showDeckSelect() {
     const unlocks = getUnlocks();
     const container = document.getElementById('deck-choices');
@@ -1657,6 +1820,11 @@ class Game {
   // ── Round Management ────────────────────────
   startRound() {
     const cfg = ROUND_CONFIG[this.round-1];
+    // v6: Apply difficulty multiplier to target
+    const mult = DIFFICULTY_MULTIPLIERS[this.difficulty] ?? 1.0;
+    this.targetScore = Math.round(ROUND_TARGETS[this.round-1] * mult);
+    if(this.deckType==='speed') this.targetScore=Math.floor(this.targetScore*Math.pow(1.1,this.round-1));
+    if(this.deckType==='short_deck') this.targetScore=Math.floor(this.targetScore*Math.pow(1.05,this.round-1));
     this.score = this.carryOverScore;
     this.carryOverScore = 0;
 
@@ -1669,11 +1837,23 @@ class Game {
 
     // Reset round-tracking state
     this.handSize = cfg.handSize || 8; // v5: from ROUND_CONFIG
-    this.foilUsedThisRound = false;
     this.handsPlayedThisRound = 0;
     this.discardsUsedThisRound = 0;
     this.startHandsLeft = this.handsLeft;
     this.worldActiveThisHand = false;
+
+    // v6: Reset per-round gambit state
+    this._gambittWindowOpen = true;
+    this._gambittDeclared = false;
+    this._breakdownPinned = false;
+    // Clean up any lingering gambit banner
+    const oldBanner = document.getElementById('gambit-declared-banner');
+    if(oldBanner) oldBanner.remove();
+
+    // v6: Reset glass_cannon per-round state
+    this.jokers.forEach(j=>{
+      if(j.id==='glass_cannon'){ j.usedThisRound=false; j.armed=false; }
+    });
 
     // Change 7B: reset per-round joker state
     this._compoundChips = 0;
@@ -1715,11 +1895,6 @@ class Game {
     // Change 3: no event revert needed
     this.round++;
     if(this.round>10) return;
-    this.targetScore = ROUND_TARGETS[this.round-1];
-    // Speed deck target scaling
-    if(this.deckType==='speed') this.targetScore=Math.floor(this.targetScore*Math.pow(1.1,this.round-1));
-    // Short deck target scaling
-    if(this.deckType==='short_deck') this.targetScore=Math.floor(this.targetScore*Math.pow(1.05,this.round-1));
     // Recreate deck unless Deck Refresh
     if(!this.modifiers.find(m=>m.id==='deck_refresh')) this.deck=new Deck(this.deckType, this.rng.bind(this));
     // Delayed Gratification: grant extra discard if none used
@@ -1743,15 +1918,19 @@ class Game {
     this._runStats = { handsPlayed:0, discardsUsed:0, bestHandName:'', bestHandScore:0, bestRoundScore:0, handTypeCounts:{}, goldEarned:0, goldSpent:0 };
     this._pendingMilestones=[];
     this._pendingConsumableIdx=null; this._consumableTargets=[];
-    this._enhanceSelectMode=null; this._shopOpen=false;
-    this._gambittUsed=false; this._gambittDeclared=false;
+    this._shopOpen=false;
+    // v6: reset gambit state
+    this.difficulty='standard';
+    this._gambittWindowOpen=true; this._gambittDeclared=false;
+    this._gambittDeclaredCount=0; this._gambittWonCount=0;
+    this._breakdownPinned=false;
 
     ['overlay-gameover','overlay-victory','overlay-joker','overlay-shop','overlay-history',
      'overlay-consumable-target','overlay-joker-buy-confirm'].forEach(id=>{
       const el=document.getElementById(id);
       if(el) el.classList.add('hidden');
     });
-    this.showDeckSelect();
+    this.showTitleScreen();
   }
 
   _saveDailyResult() {
@@ -1799,12 +1978,6 @@ class Game {
       bonusChips: 0,
       multBonus: 0,
     };
-
-    // Enhancement pass
-    for(const card of cards) {
-      if(card.enhancements.has('gilded')) result.bonusChips+=10;
-      if(card.enhancements.has('foil')&&!this.foilUsedThisRound){ result.multBonus+=4; this.foilUsedThisRound=true; }
-    }
 
     // Pass 1: additive jokers (run in order — The Alchemist fires last in this pass
     // because it reads bonusChips accumulated by all previous chip jokers)
@@ -1870,27 +2043,29 @@ class Game {
     setTimeout(()=>{
       this.score += total;
 
-      // v5: Gambit resolution
+      // v6: Gambit resolution
       if(this._gambittDeclared) {
         this._gambittDeclared = false;
+        this._gambittDeclaredCount++;
         const threshold = Math.floor(this.targetScore * 1.5);
         if(total >= threshold) {
-          this.score = threshold;
-          this.setResult(`🎲 GAMBIT SUCCESS! ${total.toLocaleString()} pts — round skipped!`);
+          // SUCCESS
+          this._gambittWonCount++;
+          this.gold += 3;
+          this.setResult(`🎲 GAMBIT SUCCESS! +3g bonus — round cleared!`);
+          this._showGambittBonusToast();
           this.render();
           setTimeout(()=>this.handleRoundWin(), 1200);
           return;
         } else {
-          const weakest = this._getWeakestJoker();
-          if(weakest) {
-            this.jokers = this.jokers.filter(j=>j!==weakest);
-            this.renderJokers();
-            this.setResult(`🎲 Gambit failed! ${weakest.name} was lost. Round continues.`);
-          } else {
-            this.setResult('🎲 Gambit failed! Round continues.');
-          }
+          // FAILURE — deduct 2g, floor at 0
+          this.gold = Math.max(0, this.gold - 2);
+          this.setResult(`🎲 Gambit failed! -2g. Round continues.`);
         }
       }
+
+      // Close the gambit window after first hand
+      this._gambittWindowOpen = false;
 
       this.handsLeft--;
       this.handsPlayedThisRound++;
@@ -1944,7 +2119,10 @@ class Game {
     const earned = this.calculateRoundGold();
     this.gold += earned;
     this._runStats.goldEarned += earned;
-    this.carryOverScore = Math.floor((this.score - this.targetScore)*0.05); // v5: 15%→5%
+    this.carryOverScore = Math.floor((this.score - this.targetScore)*0.10); // v6: 5%→10%
+    // Clean up gambit declared banner if present
+    const banner = document.getElementById('gambit-declared-banner');
+    if(banner) banner.remove();
     // The Accountant: +1 gold on round clear
     if(this.jokers.find(j=>j.id==='the_accountant')){ this.gold+=1; this._runStats.goldEarned+=1; }
     if(this.round > this.highScore){ this.highScore=this.round; localStorage.setItem('jg_hs',this.highScore); }
@@ -1977,19 +2155,41 @@ class Game {
   }
 
   declareGambit() {
-    if(this._gambittUsed) { this.setResult('The Gambit has already been used this run!'); return; }
-    if(this.jokers.length===0) { this.setResult('You need at least one joker to declare The Gambit.'); return; }
+    if(!this._gambittWindowOpen) { this.setResult('Gambit window closed — available on the first hand of each round.'); return; }
     if(this._gambittDeclared) {
-      this._gambittDeclared=false; this._gambittUsed=false;
+      this._gambittDeclared = false;
       document.getElementById('btn-gambit').classList.remove('declared');
+      const banner = document.getElementById('gambit-declared-banner');
+      if(banner) banner.remove();
       this.setResult('Gambit cancelled.');
       this.updateButtons(); return;
     }
-    this._gambittDeclared=true; this._gambittUsed=true;
+    this._gambittDeclared = true;
     document.getElementById('btn-gambit').classList.add('declared');
-    const threshold = Math.floor(this.targetScore*1.5);
-    this.setResult(`🎲 GAMBIT DECLARED! Hit ${threshold.toLocaleString()} pts in one hand to skip the round. Fail = lose your weakest joker.`);
+    const threshold = Math.floor(this.targetScore * 1.5);
+    // Show declared banner
+    let banner = document.getElementById('gambit-declared-banner');
+    if(!banner) {
+      banner = document.createElement('div');
+      banner.id = 'gambit-declared-banner';
+      banner.className = 'gambit-declared-banner';
+      const cardArea = document.getElementById('card-area');
+      cardArea.parentNode.insertBefore(banner, cardArea);
+    }
+    banner.textContent = `🎲 GAMBIT DECLARED — Score ${threshold.toLocaleString()} in this hand`;
+    // Score bar goes red
+    document.getElementById('score-bar').style.background = 'linear-gradient(90deg, #dc2626, #f97316)';
+    this.setResult(`🎲 GAMBIT DECLARED! Hit ${threshold.toLocaleString()} pts in one hand to clear the round (+3g). Fail = -2g.`);
     this.updateButtons();
+  }
+
+  _showGambittBonusToast() {
+    const toast = document.getElementById('milestone-toast');
+    if(!toast) return;
+    toast.textContent = '🎲 GAMBIT SUCCESS! +3g bonus!';
+    toast.style.borderColor = '#ffd700';
+    toast.classList.add('show');
+    setTimeout(()=>{ toast.classList.remove('show'); toast.style.borderColor=''; }, 3500);
   }
 
   _getWeakestJoker() {
@@ -2084,8 +2284,6 @@ class Game {
       const isSelected = this._consumableTargets.includes(card);
       let cls = `card ${card.colorClass}${isSelected?' selected':''}`;
       if(card.isGhost) cls+=' card-ghost';
-      if(card.enhancements.has('gilded')) cls+=' card-gilded';
-      if(card.enhancements.has('foil')) cls+=' card-foil';
       el.className = cls;
       el.innerHTML = `
         <div class="card-corner">${card.rank}<br>${card.suit}</div>
@@ -2149,11 +2347,26 @@ class Game {
       lines.push({ text:`${j.name}: ${j._lastContrib>0?'+':''}${typeof j._lastContrib==='number'?j._lastContrib.toFixed(1):j._lastContrib}`, cls:'breakdown-joker' });
     });
     lines.push({ text:`Total: ${sc.totalChips} × ${sc.totalMult.toFixed(1)} = ${finalTotal}`, cls:'total-line' });
-    panel.innerHTML = lines.map(l=>`<div class="breakdown-line ${l.cls}">${l.text}</div>`).join('');
+    const linesHTML = lines.map(l=>`<div class="breakdown-line ${l.cls}">${l.text}</div>`).join('');
+    panel.innerHTML = `<button id="btn-pin-breakdown">${this._breakdownPinned ? '📍' : '📌'}</button>` + linesHTML;
     panel.classList.add('active');
     panel.querySelectorAll('.breakdown-line').forEach((el,i)=>setTimeout(()=>el.classList.add('visible'),i*80));
+
+    document.getElementById('btn-pin-breakdown').addEventListener('click', ()=>{
+      this._breakdownPinned = !this._breakdownPinned;
+      clearTimeout(this._breakdownTimer);
+      if(this._breakdownPinned) {
+        document.getElementById('btn-pin-breakdown').textContent = '📍';
+      } else {
+        document.getElementById('btn-pin-breakdown').textContent = '📌';
+        this._breakdownTimer = setTimeout(()=>this._hideBreakdown(), 2500);
+      }
+    });
+
     clearTimeout(this._breakdownTimer);
-    this._breakdownTimer = setTimeout(()=>this._hideBreakdown(), 2500);
+    if(!this._breakdownPinned) {
+      this._breakdownTimer = setTimeout(()=>this._hideBreakdown(), 2500);
+    }
   }
 
   _hideBreakdown() {
@@ -2506,6 +2719,7 @@ class Game {
        <strong>🏆 High Score:</strong> Round ${this.highScore}<br>
        <strong>✋ Hands played:</strong> ${s.handsPlayed} &nbsp;|&nbsp; <strong>Best hand:</strong> ${s.bestHandName||'—'} (${s.bestHandScore.toLocaleString()} pts)<br>
        <strong>🃏 Most played:</strong> ${topHands}<br>
+       <strong>🎲 Gambits:</strong> ${this._gambittWonCount} won / ${this._gambittDeclaredCount} declared<br>
        <span style="color:#ffd700;">🏆 Excellent run! Try a different deck on your next run to discover new joker synergies.</span>`;
     document.getElementById('overlay-victory').classList.remove('hidden');
   }
@@ -2559,9 +2773,6 @@ class Game {
       let cls = `card ${card.colorClass}`;
       if(this.selected.includes(card)) cls+=' selected';
       if(card.isGhost) cls+=' card-ghost';
-      if(card.enhancements.has('gilded')) cls+=' card-gilded';
-      if(card.enhancements.has('foil')) cls+=' card-foil';
-      if(this._enhanceSelectMode) cls+=' card-target-mode';
       el.className = cls;
       el.setAttribute('data-id', card.id);
       const ghostLabel = card.isGhost
@@ -2573,14 +2784,6 @@ class Game {
         <div class="card-corner bottom">${card.rank}<br>${card.suit}</div>
         ${ghostLabel}`;
       el.addEventListener('click',()=>{
-        if(this._enhanceSelectMode){
-          card.enhancements.add(this._enhanceSelectMode);
-          this._enhanceSelectMode = null;
-          this.setResult('Enhancement applied!');
-          this.renderHandOnly();
-          this.showShop();
-          return;
-        }
         this.toggleSelect(card);
       });
       container.appendChild(el);
@@ -2588,13 +2791,18 @@ class Game {
   }
 
   renderJokers() {
+    const jSection = document.getElementById('joker-section');
     document.getElementById('joker-section-title').textContent =
       `🃏 Active Jokers (${this.jokers.length}/${this.maxJokers})`;
     const container = document.getElementById('jokers-display');
+
+    // v6: Collapse section when empty
     if(!this.jokers.length){
+      jSection.style.display = 'none';
       container.innerHTML='<em style="color:#555;font-size:0.78rem;">None yet — win a round to earn jokers!</em>';
       return;
     }
+    jSection.style.display = '';
     container.innerHTML = '';
     this.jokers.forEach(j=>{
       const div = document.createElement('div');
@@ -2605,6 +2813,37 @@ class Game {
       if(j.id==='wee_joker')      extra = ` [c:+${j.chips||0} m:+${j.multAcc||0}]`;
       if(j.id==='loyalty_card')   extra = ` [${j.loyaltyCount||0}/4]`;
       div.innerHTML = `<span class="joker-name">🃏 ${j.name}</span>${j.desc}${extra}`;
+
+      // v6: Glass Cannon Arm button
+      if(j.id==='glass_cannon' && !j.usedThisRound) {
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-info';
+        btn.style.fontSize = '0.65rem';
+        btn.style.marginTop = '4px';
+        btn.textContent = j.armed ? '💥 ARMED' : '🎯 Arm';
+        if(j.armed) btn.style.color = '#ffd700';
+        btn.addEventListener('click', ()=>{
+          j.armed = !j.armed;
+          this.renderJokers();
+        });
+        div.appendChild(btn);
+      }
+
+      // v6: Curtain Call Arm button
+      if(j.id==='oops_all_6s') {
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-info';
+        btn.style.fontSize = '0.65rem';
+        btn.style.marginTop = '4px';
+        btn.textContent = j.curtainCallArmed ? '🎭 ARMED' : '🎭 Arm';
+        if(j.curtainCallArmed) btn.style.color = '#ffd700';
+        btn.addEventListener('click', ()=>{
+          j.curtainCallArmed = !j.curtainCallArmed;
+          this.renderJokers();
+        });
+        div.appendChild(btn);
+      }
+
       container.appendChild(div);
     });
 
@@ -2612,11 +2851,15 @@ class Game {
   }
 
   renderConsumables() {
+    const cSection = document.getElementById('consumable-section');
     const container = document.getElementById('consumables-display');
+    // v6: Collapse section when empty
     if(!this.consumables.length){
+      cSection.style.display = 'none';
       container.innerHTML='<em style="color:#555;font-size:0.78rem;">No consumables held</em>';
       return;
     }
+    cSection.style.display = '';
     container.innerHTML = '';
     this.consumables.forEach((c,i)=>{
       const div = document.createElement('div');
@@ -2635,12 +2878,18 @@ class Game {
   updateButtons() {
     document.getElementById('btn-play').disabled    = this.selected.length===0 || this.handsLeft<=0;
     document.getElementById('btn-discard').disabled = this.selected.length===0 || this.discardsLeft<=0;
-    // v5: Gambit button
+    // v6: Gambit button — per-round gate
     const gambBtn = document.getElementById('btn-gambit');
     if(gambBtn) {
-      const canGambit = !this._gambittUsed && this.jokers.length>0 && this.handsLeft>0;
+      const canGambit = this._gambittWindowOpen
+        && !this._gambittDeclared
+        && this.round < 10
+        && this.handsLeft > 0;
       gambBtn.disabled = !canGambit;
       if(!this._gambittDeclared) gambBtn.classList.remove('declared');
+      gambBtn.title = this._gambittWindowOpen
+        ? 'Declare The Gambit (first hand only)'
+        : 'Gambit window closed — available on the first hand of each round';
     }
   }
 
@@ -2666,7 +2915,7 @@ class Game {
   bindUI() {
     document.getElementById('btn-play').addEventListener('click',    ()=>this.playHand());
     document.getElementById('btn-discard').addEventListener('click', ()=>this.discard());
-    document.getElementById('btn-rules').addEventListener('click',   ()=>document.getElementById('overlay-rules').classList.remove('hidden'));
+    document.getElementById('btn-gambit').addEventListener('click',  ()=>this.declareGambit());
     document.getElementById('btn-guide').addEventListener('click',   ()=>document.getElementById('overlay-guide').classList.remove('hidden'));
     document.getElementById('btn-history').addEventListener('click', ()=>this.showHistory());
     document.getElementById('btn-mute').addEventListener('click',    ()=>this.toggleMute());
@@ -2681,10 +2930,6 @@ class Game {
     document.getElementById('overlay-tip').addEventListener('click', e=>{
       if(e.target===document.getElementById('overlay-tip'))
         document.getElementById('overlay-tip').classList.add('hidden');
-    });
-    document.getElementById('overlay-rules').addEventListener('click', e=>{
-      if(e.target===document.getElementById('overlay-rules'))
-        document.getElementById('overlay-rules').classList.add('hidden');
     });
 
     // Change 1: Consumable overlay buttons
